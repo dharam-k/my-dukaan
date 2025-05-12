@@ -4,7 +4,7 @@ import CreatableSelect from "react-select/creatable";
 import { FaWarehouse } from "react-icons/fa";  
 
 const DEFAULT_WAREHOUSES = [  
-  { value: "Katye", label: "Katye" },  
+  { value: "Katya", label: "Katya" },  
   { value: "Banakata", label: "Banakata" },  
   { value: "Bhore", label: "Bhore" },  
 ];  
