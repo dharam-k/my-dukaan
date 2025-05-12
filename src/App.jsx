@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";  
 import BuyerDashboard from './features/dashboard/BuyerDashboard';
 import LoginForm from './components/auth/LoginForm';
+import CreateOrder from './features/orders/CreateOrder';
 
 function App() {
 
@@ -23,6 +24,7 @@ function App() {
         <Route path="/login" element={<LoginForm />} />  
         <Route path="/dashboard" element={<BuyerDashboard />} />  
         <Route path="*" element={<Navigate to="/login" replace />} />  
+        <Route path="/create-order" element={<CreateOrder />} />
       </Routes>  
     </Router>  
   )

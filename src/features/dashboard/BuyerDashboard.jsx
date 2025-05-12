@@ -1,12 +1,8 @@
-import React, { useState } from "react";  
+import React from "react";  
 import {  
   Box,  
   Heading,  
-  Text,  
-  SimpleGrid,  
-  Stat,  
-  StatLabel,  
-  StatNumber,  
+  Text,    
   Tabs,  
   TabList,  
   TabPanels,  
@@ -16,127 +12,79 @@ import {
   Spacer,  
   Button,  
   VStack,  
-  useBreakpointValue,  
-  Table,  
-  Thead,  
-  Tbody,  
-  Tr,  
-  Th,  
-  Td,  
-  Tag,  
+  Center,    
 } from "@chakra-ui/react";  
-import { useNavigate } from "react-router-dom";
-
-const overviewStats = [  
-  { label: "Total Purchases", value: 24 },  
-  { label: "Completed Payments", value: 21 },  
-  { label: "Pending Payments", value: 3 },  
-  { label: "Pending Orders", value: 5 },  
-];  
-
-const orderAnalyticsStats = [  
-  { label: "Pending Orders (₹ Lakhs)", value: 12 },  
-  { label: "Completed Orders (₹ Lakhs)", value: 68 },  
-];  
-
-const inventoryStats = [  
-  { label: "Total Stock in Warehouse", value: 120000 },  
-  { label: "Total Warehouses", value: 6 },  
-];  
-
-const sellersMillsStats = [  
-  { label: "Total Sellers", value: 15 },  
-  { label: "Total Mills", value: 4 },  
-];  
-
-// Dummy recent orders data  
-const recentOrders = [  
-  {  
-    orderId: "ORD-1001",  
-    sellerName: "Seller A",  
-    totalWeight: "1500 kg",  
-    totalItems: 30,  
-    finalPrice: "₹ 1,20,000",  
-    paymentStatus: "Completed", 
-    purchaseDate: "8th June 2024",  
-  },  
-  {  
-    orderId: "ORD-1002",  
-    sellerName: "Seller B",  
-    totalWeight: "800 kg",  
-    totalItems: 15,  
-    finalPrice: "₹ 60,000",  
-    paymentStatus: "Completed",  
-    purchaseDate: "10th Dec 2024",  
-  },  
-  {  
-    orderId: "ORD-1003",  
-    sellerName: "Seller C",  
-    totalWeight: "2000 kg",  
-    totalItems: 40,  
-    finalPrice: "₹ 1,50,000",  
-    paymentStatus: "Pending",  
-    purchaseDate: "15th Jan 2025",  
-  },  
-];  
+import { StatsGrid } from "../../components/ui/StatsGrid";
+import { RecentOrdersTable } from "../orders/RecentOrdersTable";
+import {  
+  overviewStats,  
+  orderAnalyticsStats,  
+  inventoryStats,  
+  sellersMillsStats,  
+  recentOrders,  
+  pendingPayments 
+} from "./dashboardData";
+import { PendingPaymentsTable } from "../payments/PendingPaymentsTable";
+import { OrderOptions } from "../orders/OrderOptions";
+import Navbar from "../../components/layout/Navbar";
 
 export default function BuyerDashboard() {  
-  const [buyerName] = useState("John Doe");  
+ 
 
-  const btnSize = useBreakpointValue({ base: "md", md: "lg" });  
-  const headingSize = useBreakpointValue({ base: "md", md: "lg" });  
-  const welcomeFontSize = useBreakpointValue({ base: "md", md: "xl" });  
+  // Event handlers  
+  // const handleNewOrder = () => {  
+  //   alert("Navigate to New Order page (to be implemented)");  
+  // };  
 
-  const handleNewOrder = () => {  
-    alert("Navigate to New Order page (to be implemented)");  
-  };  
-  const navigate = useNavigate();  
 
-  const handleLogout = () => {  
-    navigate("/login");  
-  };  
 
   const handleViewOrder = (orderId) => {  
     alert(`View details for Order ID: ${orderId} (to be implemented)`);  
   };  
 
+  const handleStatClick = (label) => {  
+    alert(`View details for: ${label}`);  
+  };  
+
   return (  
-    <Box p={{ base: 4, md: 8 }} maxW="1200px" mx="auto">  
+    <Box p={{ base: 4, md: 8 }} maxW="1200px" maxWidth={{ base: 300, md: 800, "xl": 1000 }} mx="auto">  
       {/* Header */}  
-      <Flex direction={{ base: "column", md: "row" }} align="center" mb={6}>  
-        <Heading size={headingSize}>Buyer Dashboard</Heading>  
-        <Spacer />  
-        <Button  
-          colorScheme="green"  
-          variant="outline"  
-          mt={{ base: 4, md: 0 }}  
-          width={{ base: "100%", md: "auto" }}  
-          onClick={handleLogout} 
-        >  
-          Logout  
-        </Button>  
-      </Flex>  
+      <Navbar />
 
-      {/* Welcome Text */}  
-      <Text fontSize={welcomeFontSize} mb={6}>  
-        Welcome back, <strong>{buyerName}</strong>!  
-      </Text>  
-
-      {/* New Order Button Section */}  
-      <VStack mb={8} align="stretch" maxW={{ base: "100%", md: "320px" }}>  
-        <Button  
-          colorScheme="green"  
-          size={btnSize}  
-          onClick={handleNewOrder}  
-          fontWeight="bold"  
-          width="100%"  
+      {/* New Order Button */}  
+      <Center minH="200px" mb={8} px={4}>  
+        <VStack  
+          spacing={6}  
+          w="100%"  
+          align="center"  
+          textAlign="center"  
+          p={6}  
+          boxShadow="md"  
+          borderRadius="md"  
+          bg="gray.50"  
         >  
-          Create New Order  
-        </Button>  
-      </VStack>  
+          <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="extrabold" color="green.600">  
+            Start Your New Order  
+          </Text>  
+          <Text fontSize={{ base: "md", md: "lg" }} color="gray.600" maxW="280px">  
+            Choose how you want to place your order.  
+          </Text>  
+          <Box w="100%">  
+            <Center>
+              <OrderOptions />
+            </Center>
+              
+          </Box>  
+        </VStack>  
+      </Center>    
 
       {/* Tabs Section */}  
-      <Tabs variant="enclosed" colorScheme="green" isFitted={false} w="100%">  
+      <Tabs  
+        variant="enclosed"  
+        colorScheme="green"  
+        isFitted={false}  
+        w="100%"  
+      >  
         <TabList  
           overflowX="auto"  
           whiteSpace="nowrap"  
@@ -165,160 +113,28 @@ export default function BuyerDashboard() {
 
         <TabPanels>  
           <TabPanel p={0}>  
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={4} mb={4}>  
-              {overviewStats.map(({ label, value }) => (  
-                <Stat  
-                  key={label}  
-                  p={4}  
-                  shadow="sm"  
-                  borderWidth="1px"  
-                  rounded="md"  
-                  bg="green.50"  
-                >  
-                  <StatLabel fontSize={{ base: "sm", md: "md" }}>  
-                    {label}  
-                  </StatLabel>  
-                  <StatNumber fontSize={{ base: "lg", md: "2xl" }} color="green.700">  
-                    {value}  
-                  </StatNumber>  
-                </Stat>  
-              ))}  
-            </SimpleGrid>  
+            <StatsGrid stats={overviewStats} onStatClick={handleStatClick} />  
           </TabPanel>  
-
           <TabPanel p={0}>  
-            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} mb={4}>  
-              {orderAnalyticsStats.map(({ label, value }) => (  
-                <Stat  
-                  key={label}  
-                  p={4}  
-                  shadow="sm"  
-                  borderWidth="1px"  
-                  rounded="md"  
-                  bg="green.50"  
-                >  
-                  <StatLabel fontSize={{ base: "sm", md: "md" }}>  
-                    {label}  
-                  </StatLabel>  
-                  <StatNumber fontSize={{ base: "lg", md: "2xl" }} color="green.700">  
-                    ₹ {value} Lakhs  
-                  </StatNumber>  
-                </Stat>  
-              ))}  
-            </SimpleGrid>  
+            <StatsGrid  
+              stats={orderAnalyticsStats}  
+              onStatClick={handleStatClick}  
+            />  
           </TabPanel>  
-
           <TabPanel p={0}>  
-            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} mb={4}>  
-              {inventoryStats.map(({ label, value }) => (  
-                <Stat  
-                  key={label}  
-                  p={4}  
-                  shadow="sm"  
-                  borderWidth="1px"  
-                  rounded="md"  
-                  bg="green.50"  
-                >  
-                  <StatLabel fontSize={{ base: "sm", md: "md" }}>  
-                    {label}  
-                  </StatLabel>  
-                  <StatNumber fontSize={{ base: "lg", md: "2xl" }} color="green.700">  
-                    {value}  
-                  </StatNumber>  
-                </Stat>  
-              ))}  
-            </SimpleGrid>  
+            <StatsGrid stats={inventoryStats} onStatClick={handleStatClick} />  
           </TabPanel>  
-
           <TabPanel p={0}>  
-            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} mb={4}>  
-              {sellersMillsStats.map(({ label, value }) => (  
-                <Stat  
-                  key={label}  
-                  p={4}  
-                  shadow="sm"  
-                  borderWidth="1px"  
-                  rounded="md"  
-                  bg="green.50"  
-                >  
-                  <StatLabel fontSize={{ base: "sm", md: "md" }}>  
-                    {label}  
-                  </StatLabel>  
-                  <StatNumber fontSize={{ base: "lg", md: "2xl" }} color="green.700">  
-                    {value}  
-                  </StatNumber>  
-                </Stat>  
-              ))}  
-            </SimpleGrid>  
+            <StatsGrid stats={sellersMillsStats} onStatClick={handleStatClick} />  
           </TabPanel>  
         </TabPanels>  
       </Tabs>  
 
-      {/* Recent Orders Section */}  
-      <Box mt={10}>  
-        <Heading size="md" mb={4}>  
-          Recent Purchase Orders  
-        </Heading>  
-        <Box overflowX="auto">  
-          <Table variant="simple" size="sm" minW="700px">  
-            <Thead bg="green.100">  
-              <Tr>  
-                
-                <Th>Seller Name</Th>  
-                <Th>Total Weight</Th>  
-                <Th>Total Items</Th>  
-                <Th>Final Price</Th>  
-                <Th>Payment Status</Th>  
-                <Th>Date</Th>  
-                <Th></Th>  
-              </Tr>  
-            </Thead>  
-            <Tbody>  
-              {recentOrders.map(  
-                ({  
-                  orderId,  
-                  sellerName,  
-                  totalWeight,  
-                  totalItems,  
-                  finalPrice,  
-                  paymentStatus,
-                  purchaseDate  
-                }) => (  
-                  <Tr key={orderId}>  
-                     
-                    <Td>{sellerName}</Td>  
-                    <Td>{totalWeight}</Td>  
-                    <Td>{totalItems}</Td>  
-                    <Td>{finalPrice}</Td>   
-                    <Td>  
-                      <Tag  
-                        colorScheme={  
-                          paymentStatus.toLowerCase() === "pending"  
-                            ? "yellow"  
-                            : "green"  
-                        }  
-                        variant="solid"  
-                      >  
-                        {paymentStatus}  
-                      </Tag>  
-                    </Td> 
-                    <Td>{purchaseDate}</Td> 
-                    <Td>  
-                      <Button  
-                        size="sm"  
-                        colorScheme="green"  
-                        onClick={() => handleViewOrder(orderId)}  
-                      >  
-                        View Order  
-                      </Button>  
-                    </Td>  
-                  </Tr>  
-                )  
-              )}  
-            </Tbody>  
-          </Table>  
-        </Box>  
-      </Box>  
+      {/* Recent Orders Table */}  
+      <RecentOrdersTable orders={recentOrders} onViewOrder={handleViewOrder} />  
+      {/* Pending Payments Table */}  
+      <PendingPaymentsTable payments={pendingPayments} /> 
+  
     </Box>  
   );  
-}
+}  
