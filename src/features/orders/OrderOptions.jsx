@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 export function OrderOptions() {  
   const navigate = useNavigate(); 
   const handleOptionClick = (option) => {  
-    alert("Selected option : "+option); 
+    // alert("Selected option : "+option); 
     if(option == "DharmKata")  navigate("/create-order");
     if(option == "Bora")  navigate("/create-order");
   };  

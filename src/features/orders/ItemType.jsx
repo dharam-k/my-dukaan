@@ -1,8 +1,7 @@
-// src/components/Order/ItemTypeQuality.jsx  
-
 import React from "react";  
-import { Box, FormControl, FormLabel, Select } from "@chakra-ui/react";  
+import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";  
 import CreatableSelect from "react-select/creatable";  
+import { FaTag } from "react-icons/fa";  
 
 const DEFAULT_OPTIONS = [  
   { value: "Mansoori Dhaan", label: "Mansoori Dhaan" },  
@@ -18,7 +17,6 @@ export default function ItemType({
   itemType,  
   setItemType,   
 }) {  
-  // react-select expects value as object {value,label}  
   const selectedItem = itemType  
     ? { value: itemType, label: itemType }  
     : null;  
@@ -30,7 +28,12 @@ export default function ItemType({
   return (  
     <Box mt={4}>  
       <FormControl mb={4}>  
-        <FormLabel>Type of Item</FormLabel>  
+        <FormLabel>  
+          <HStack spacing={2}>  
+            <Box color="cyan.600"><FaTag /></Box>  
+            <Box>Type of Item</Box>  
+          </HStack>  
+        </FormLabel>  
         <CreatableSelect  
           isClearable  
           options={DEFAULT_OPTIONS}  
@@ -39,7 +42,7 @@ export default function ItemType({
           placeholder="Select or create item type..."  
           formatCreateLabel={(inputValue) => `Create: "${inputValue}"`}  
         />  
-      </FormControl> 
+      </FormControl>  
     </Box>  
   );  
 }

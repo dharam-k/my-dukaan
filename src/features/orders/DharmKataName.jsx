@@ -1,7 +1,7 @@
-// src/components/Order/DharmKataName.jsx  
 import React from "react";  
-import { Box, FormControl, FormLabel } from "@chakra-ui/react";  
+import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";  
 import CreatableSelect from "react-select/creatable";  
+import { FaIdBadge } from "react-icons/fa";  
 
 const DEFAULT_DHARMKATA = [  
   { value: "DharmKata A", label: "DharmKata A" },  
@@ -19,7 +19,14 @@ export default function DharmKataName({ dharmKata, setDharmKata }) {
   return (  
     <Box>  
       <FormControl>  
-        <FormLabel>DharmKata Name</FormLabel>  
+        <FormLabel>  
+          <HStack spacing={2}>  
+            <Box color="teal.600">  
+              <FaIdBadge />  
+            </Box>  
+            <Box>DharmKata Name</Box>  
+          </HStack>  
+        </FormLabel>  
         <CreatableSelect  
           isClearable  
           options={DEFAULT_DHARMKATA}  

@@ -1,15 +1,28 @@
-// src/components/Order/RateInput.jsx  
 import React from "react";  
-import { Box, FormControl, FormLabel, Input, HStack, SimpleGrid } from "@chakra-ui/react";  
-import DharmKataName from "./DharmKataName";
+import { Box, FormControl, FormLabel, Input, HStack, SimpleGrid, Box as ChakraBox } from "@chakra-ui/react";  
+import DharmKataName from "./DharmKataName";  
+import { FaRupeeSign, FaMoneyBillWave } from "react-icons/fa";  
 
-export default function RateInput({ ratePerQuantal, setRatePerQuantal, poldariRate, setPoldariRate , dharmKata,  
-  setDharmKata }) {  
+export default function RateInput({  
+  ratePerQuantal,  
+  setRatePerQuantal,  
+  poldariRate,  
+  setPoldariRate,  
+  dharmKata,  
+  setDharmKata  
+}) {  
   return (  
     <Box mt={4}>  
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>  
+      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>  
         <FormControl>  
-          <FormLabel>Rate per Quantal(100kg)</FormLabel>  
+          <FormLabel>  
+            <HStack spacing={2}>  
+              <ChakraBox color="green.600">  
+                <FaRupeeSign />  
+              </ChakraBox>  
+              <Box>Rate per Quantal (100kg)</Box>  
+            </HStack>  
+          </FormLabel>  
           <Input  
             type="number"  
             min="0"  
@@ -20,7 +33,14 @@ export default function RateInput({ ratePerQuantal, setRatePerQuantal, poldariRa
         </FormControl>  
 
         <FormControl>  
-          <FormLabel>Poldari Rate(Rs)</FormLabel>  
+          <FormLabel>  
+            <HStack spacing={2}>  
+              <ChakraBox color="orange.600">  
+                <FaMoneyBillWave />  
+              </ChakraBox>  
+              <Box>Poldari Rate (Rs)</Box>  
+            </HStack>  
+          </FormLabel>  
           <Input  
             type="number"  
             min="0"  
@@ -29,7 +49,8 @@ export default function RateInput({ ratePerQuantal, setRatePerQuantal, poldariRa
             onChange={(e) => setPoldariRate(e.target.value)}  
           />  
         </FormControl>  
-        {/* DharmKata Name creatable select */}  
+
+        {/* DharmKataName already has icon, so just include it */}  
         <DharmKataName dharmKata={dharmKata} setDharmKata={setDharmKata} />  
       </SimpleGrid>  
     </Box>  

@@ -1,4 +1,4 @@
-
+import React from "react";  
 import {  
   Box,  
   Heading,  
@@ -10,7 +10,18 @@ import {
   Th,  
   Td,  
   Tag,  
+  HStack,  
+  Text,  
+  Icon,  
 } from "@chakra-ui/react";  
+import {  
+  FaUserCircle,  
+  FaWeight,  
+  FaBoxes,  
+  FaRupeeSign,  
+  FaDollarSign,  
+  FaCalendarAlt,  
+} from "react-icons/fa";  
 
 // Recent orders table with clickable "View Order" buttons  
 export function RecentOrdersTable({ orders, onViewOrder }) {  
@@ -23,12 +34,42 @@ export function RecentOrdersTable({ orders, onViewOrder }) {
         <Table variant="simple" size="sm" minW="700px">  
           <Thead bg="green.100">  
             <Tr>  
-              <Th>Seller Name</Th>  
-              <Th>Total Weight</Th>  
-              <Th>Total Items</Th>  
-              <Th>Final Price</Th>  
-              <Th>Payment Status</Th>  
-              <Th>Date</Th>  
+              <Th>  
+                <HStack spacing={1}>  
+                  <Icon as={FaUserCircle} color="green.600" />  
+                  <Text>Seller Name</Text>  
+                </HStack>  
+              </Th>  
+              <Th>  
+                <HStack spacing={1}>  
+                  <Icon as={FaWeight} color="green.600" />  
+                  <Text>Total Weight</Text>  
+                </HStack>  
+              </Th>  
+              <Th>  
+                <HStack spacing={1}>  
+                  <Icon as={FaBoxes} color="green.600" />  
+                  <Text>Total Items</Text>  
+                </HStack>  
+              </Th>  
+              <Th>  
+                <HStack spacing={1}>  
+                  <Icon as={FaRupeeSign} color="green.600" />  
+                  <Text>Final Price</Text>  
+                </HStack>  
+              </Th>  
+              <Th>  
+                <HStack spacing={1}>  
+                  <Icon as={FaDollarSign} color="green.600" />  
+                  <Text>Payment Status</Text>  
+                </HStack>  
+              </Th>  
+              <Th>  
+                <HStack spacing={1}>  
+                  <Icon as={FaCalendarAlt} color="green.600" />  
+                  <Text>Date</Text>  
+                </HStack>  
+              </Th>  
               <Th></Th>  
             </Tr>  
           </Thead>  
@@ -47,13 +88,11 @@ export function RecentOrdersTable({ orders, onViewOrder }) {
                   <Td>{sellerName}</Td>  
                   <Td>{totalWeight}</Td>  
                   <Td>{totalItems}</Td>  
-                  <Td>{finalPrice}</Td>  
+                  <Td>₹{finalPrice}</Td>  
                   <Td>  
                     <Tag  
                       colorScheme={  
-                        paymentStatus.toLowerCase() === "pending"  
-                          ? "yellow"  
-                          : "green"  
+                        paymentStatus.toLowerCase() === "pending" ? "yellow" : "green"  
                       }  
                       variant="solid"  
                     >  
@@ -78,4 +117,4 @@ export function RecentOrdersTable({ orders, onViewOrder }) {
       </Box>  
     </Box>  
   );  
-}  
+}

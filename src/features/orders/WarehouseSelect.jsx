@@ -1,7 +1,7 @@
-// src/components/Order/WarehouseSelect.jsx  
 import React from "react";  
-import { Box, FormControl, FormLabel } from "@chakra-ui/react";  
+import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";  
 import CreatableSelect from "react-select/creatable";  
+import { FaWarehouse } from "react-icons/fa";  
 
 const DEFAULT_WAREHOUSES = [  
   { value: "Katye", label: "Katye" },  
@@ -19,7 +19,14 @@ export default function WarehouseSelect({ warehouse, setWarehouse }) {
   return (  
     <Box>  
       <FormControl>  
-        <FormLabel>Warehouse</FormLabel>  
+        <FormLabel>  
+          <HStack spacing={2}>  
+            <Box color="blue.500">  
+              <FaWarehouse />  
+            </Box>  
+            <Box>Warehouse</Box>  
+          </HStack>  
+        </FormLabel>  
         <CreatableSelect  
           isClearable  
           options={DEFAULT_WAREHOUSES}  

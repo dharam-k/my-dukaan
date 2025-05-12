@@ -1,14 +1,27 @@
-// src/components/Order/WeightInputs.jsx  
 import React from "react";  
-import { Box, FormControl, FormLabel, Input, SimpleGrid } from "@chakra-ui/react";  
+import { Box, FormControl, FormLabel, Input, SimpleGrid, HStack } from "@chakra-ui/react";  
+import { FaWeight, FaBoxes, FaUsers } from "react-icons/fa";  
 
-export default function WeightInputs({ totalWeight, setTotalWeight, totalItem, setTotalItem,  totalPoldar,  
-  setTotalPoldar }) {  
+export default function WeightInputs({  
+  totalWeight,  
+  setTotalWeight,  
+  totalItem,  
+  setTotalItem,  
+  totalPoldar,  
+  setTotalPoldar,  
+}) {  
   return (  
     <Box mt={4}>  
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>  
+      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>  
         <FormControl>  
-          <FormLabel>Total Weight (kg)</FormLabel>  
+          <FormLabel>  
+            <HStack spacing={2}>  
+              <Box color="teal.500">  
+                <FaWeight />  
+              </Box>  
+              <Box>Total Weight (kg)</Box>  
+            </HStack>  
+          </FormLabel>  
           <Input  
             type="number"  
             min="0"  
@@ -17,8 +30,16 @@ export default function WeightInputs({ totalWeight, setTotalWeight, totalItem, s
             onChange={(e) => setTotalWeight(e.target.value)}  
           />  
         </FormControl>  
+
         <FormControl>  
-          <FormLabel>Total Item</FormLabel>  
+          <FormLabel>  
+            <HStack spacing={2}>  
+              <Box color="orange.500">  
+                <FaBoxes />  
+              </Box>  
+              <Box>Total Item</Box>  
+            </HStack>  
+          </FormLabel>  
           <Input  
             type="number"  
             min="0"  
@@ -26,9 +47,17 @@ export default function WeightInputs({ totalWeight, setTotalWeight, totalItem, s
             value={totalItem}  
             onChange={(e) => setTotalItem(e.target.value)}  
           />  
-        </FormControl>
+        </FormControl>  
+
         <FormControl>  
-          <FormLabel>Total Poldar</FormLabel>  
+          <FormLabel>  
+            <HStack spacing={2}>  
+              <Box color="purple.500">  
+                <FaUsers />  
+              </Box>  
+              <Box>Total Poldar</Box>  
+            </HStack>  
+          </FormLabel>  
           <Input  
             type="number"  
             min="0"  
@@ -36,7 +65,7 @@ export default function WeightInputs({ totalWeight, setTotalWeight, totalItem, s
             value={totalPoldar}  
             onChange={(e) => setTotalPoldar(e.target.value)}  
           />  
-        </FormControl>   
+        </FormControl>  
       </SimpleGrid>  
     </Box>  
   );  

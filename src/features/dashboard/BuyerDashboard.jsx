@@ -2,7 +2,7 @@ import React from "react";
 import {  
   Box,  
   Heading,  
-  Text,    
+  Text,  
   Tabs,  
   TabList,  
   TabPanels,  
@@ -12,32 +12,34 @@ import {
   Spacer,  
   Button,  
   VStack,  
-  Center,    
+  Center,  
+  HStack,  
+  Icon,  
 } from "@chakra-ui/react";  
-import { StatsGrid } from "../../components/ui/StatsGrid";
-import { RecentOrdersTable } from "../orders/RecentOrdersTable";
+import { StatsGrid } from "../../components/ui/StatsGrid";  
+import { RecentOrdersTable } from "../orders/RecentOrdersTable";  
 import {  
   overviewStats,  
   orderAnalyticsStats,  
   inventoryStats,  
   sellersMillsStats,  
   recentOrders,  
-  pendingPayments 
-} from "./dashboardData";
-import { PendingPaymentsTable } from "../payments/PendingPaymentsTable";
-import { OrderOptions } from "../orders/OrderOptions";
-import Navbar from "../../components/layout/Navbar";
+  pendingPayments,  
+} from "./dashboardData";  
+import { PendingPaymentsTable } from "../payments/PendingPaymentsTable";  
+import { OrderOptions } from "../orders/OrderOptions";  
+import Navbar from "../../components/layout/Navbar";  
+
+import {  
+  FaHome,  
+  FaChartLine,  
+  FaWarehouse,  
+  FaUsers,  
+  FaShoppingCart,  
+} from "react-icons/fa";  
+import Footer from "../../components/layout/Footer";
 
 export default function BuyerDashboard() {  
- 
-
-  // Event handlers  
-  // const handleNewOrder = () => {  
-  //   alert("Navigate to New Order page (to be implemented)");  
-  // };  
-
-
-
   const handleViewOrder = (orderId) => {  
     alert(`View details for Order ID: ${orderId} (to be implemented)`);  
   };  
@@ -46,10 +48,15 @@ export default function BuyerDashboard() {
     alert(`View details for: ${label}`);  
   };  
 
-  return (  
-    <Box p={{ base: 4, md: 8 }} maxW="1200px" maxWidth={{ base: 300, md: 800, "xl": 1000 }} mx="auto">  
+  return (  <>
+    <Box  
+      p={{ base: 4, md: 8 }}  
+      maxW="1200px"  
+      maxWidth={{ base: 300, md: 800, xl: 1000 }}  
+      mx="auto"  
+    >  
       {/* Header */}  
-      <Navbar />
+      <Navbar />  
 
       {/* New Order Button */}  
       <Center minH="200px" mb={8} px={4}>  
@@ -63,28 +70,26 @@ export default function BuyerDashboard() {
           borderRadius="md"  
           bg="gray.50"  
         >  
-          <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="extrabold" color="green.600">  
-            Start Your New Order  
-          </Text>  
+          <HStack spacing={3}>  
+            <Icon as={FaShoppingCart} boxSize={8} color="green.600" />  
+            <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="extrabold" color="green.600">  
+              Start Your New Order  
+            </Text>  
+          </HStack>  
+
           <Text fontSize={{ base: "md", md: "lg" }} color="gray.600" maxW="280px">  
             Choose how you want to place your order.  
           </Text>  
           <Box w="100%">  
-            <Center>
-              <OrderOptions />
-            </Center>
-              
+            <Center>  
+              <OrderOptions />  
+            </Center>  
           </Box>  
         </VStack>  
-      </Center>    
+      </Center>  
 
       {/* Tabs Section */}  
-      <Tabs  
-        variant="enclosed"  
-        colorScheme="green"  
-        isFitted={false}  
-        w="100%"  
-      >  
+      <Tabs variant="enclosed" colorScheme="green" isFitted={false} w="100%">  
         <TabList  
           overflowX="auto"  
           whiteSpace="nowrap"  
@@ -98,16 +103,28 @@ export default function BuyerDashboard() {
           }}  
         >  
           <Tab minW="120px" flexShrink={0}>  
-            Overview  
+            <HStack spacing={2} justify="center">  
+              <Icon as={FaHome} color="green.600" />  
+              <Text>Overview</Text>  
+            </HStack>  
           </Tab>  
           <Tab minW="140px" flexShrink={0}>  
-            Order Analytics  
+            <HStack spacing={2} justify="center">  
+              <Icon as={FaChartLine} color="green.600" />  
+              <Text>Order Analytics</Text>  
+            </HStack>  
           </Tab>  
           <Tab minW="180px" flexShrink={0}>  
-            Inventory & Warehouses  
+            <HStack spacing={2} justify="center">  
+              <Icon as={FaWarehouse} color="green.600" />  
+              <Text>Inventory & Warehouses</Text>  
+            </HStack>  
           </Tab>  
           <Tab minW="120px" flexShrink={0}>  
-            Sellers & Mills  
+            <HStack spacing={2} justify="center">  
+              <Icon as={FaUsers} color="green.600" />  
+              <Text>Sellers & Mills</Text>  
+            </HStack>  
           </Tab>  
         </TabList>  
 
@@ -116,10 +133,7 @@ export default function BuyerDashboard() {
             <StatsGrid stats={overviewStats} onStatClick={handleStatClick} />  
           </TabPanel>  
           <TabPanel p={0}>  
-            <StatsGrid  
-              stats={orderAnalyticsStats}  
-              onStatClick={handleStatClick}  
-            />  
+            <StatsGrid stats={orderAnalyticsStats} onStatClick={handleStatClick} />  
           </TabPanel>  
           <TabPanel p={0}>  
             <StatsGrid stats={inventoryStats} onStatClick={handleStatClick} />  
@@ -133,8 +147,10 @@ export default function BuyerDashboard() {
       {/* Recent Orders Table */}  
       <RecentOrdersTable orders={recentOrders} onViewOrder={handleViewOrder} />  
       {/* Pending Payments Table */}  
-      <PendingPaymentsTable payments={pendingPayments} /> 
-  
+      <PendingPaymentsTable payments={pendingPayments} />  
     </Box>  
+      {/* Footer */}  
+    <Footer />
+    </>
   );  
-}  
+}

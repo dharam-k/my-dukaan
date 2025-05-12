@@ -16,7 +16,9 @@ import RateInput from "./RateInput";
 import WeightInputs from "./WeightInputs";  
 import ItemType from "./ItemType";  
 import ItemQuality from "./ItemQuality";  
-import WarehouseSelect from "./WarehouseSelect"; // <-- Import new warehouse component  
+import WarehouseSelect from "./WarehouseSelect"; 
+import { FaWeight, FaBoxes, FaUsers, FaRupeeSign, FaMoneyBillWave } from "react-icons/fa";    
+import Footer from "../../components/layout/Footer";
 
 const defaultBuyer = {  
   name: "John Doe",  
@@ -49,7 +51,7 @@ export default function CreateOrder() {
   const totalPrice = (weightNum / 100) * rateNum; 
   const finalPrice = totalPrice - totalPolidari;  
 
-  return (  
+  return ( <> 
     <Box maxW="1200px" mx="auto" p={{ base: 4, md: 8 }}>  
       <Box mx="auto">  
         <Navbar />  
@@ -66,9 +68,6 @@ export default function CreateOrder() {
 
         {/* Seller Selector */}  
         <Box>  
-          <Text fontSize="xl" fontWeight="bold" mb={2}>  
-            Select Seller  
-          </Text>  
           <SellerSelector selectedSeller={selectedSeller} setSelectedSeller={setSelectedSeller} />  
         </Box>  
 
@@ -141,15 +140,39 @@ export default function CreateOrder() {
                 Calculation  
               </Text>  
 
-              <Text>Total Weight: {weightNum} kg ~ {weightNum / 100} quantal</Text>  
-              <Text>Total Item: {itemNum}</Text>  
-              <Text>Total Poldar: {poldarNum}</Text>  
+              <HStack mb={2} spacing={2}>  
+                <Box color="teal.500"><FaWeight /></Box>  
+                <Text>Total Weight: {weightNum} kg ~ {(weightNum / 100).toFixed(2)} qntl</Text>  
+              </HStack>  
 
-              <Text mt={4}>Total Price (Rs): ₹{totalPrice.toFixed(2)}</Text>  
-              <Text>Total Poldari (Rs): ₹{totalPolidari.toFixed(2)}</Text>  
-              <Text>Per Head Poldari: ₹{perHeadPoldari.toFixed(2)}</Text>  
+              <HStack mb={2} spacing={2}>  
+                <Box color="orange.500"><FaBoxes /></Box>  
+                <Text>Total Item: {itemNum}</Text>  
+              </HStack>  
 
-              <Text fontWeight="bold" mt={2}>  
+              <HStack mb={2} spacing={2}>  
+                <Box color="purple.500"><FaUsers /></Box>  
+                <Text>Total Poldar: {poldarNum}</Text>  
+              </HStack>  
+
+              <Divider my={4} />  
+
+              <HStack mb={2} spacing={2}>  
+                <Box color="blue.500"><FaRupeeSign /></Box>  
+                <Text>Total Price (Rs): ₹{totalPrice.toFixed(2)}</Text>  
+              </HStack>  
+
+              <HStack mb={2} spacing={2}>  
+                <Box color="red.500"><FaMoneyBillWave /></Box>  
+                <Text>Total Poldari (Rs): ₹{totalPolidari.toFixed(2)}</Text>  
+              </HStack>  
+
+              <HStack mb={2} spacing={2}>  
+                <Box color="green.500"><FaMoneyBillWave /></Box>  
+                <Text>Per Head Poldari: ₹{perHeadPoldari.toFixed(2)}</Text>  
+              </HStack>  
+
+              <Text fontWeight="bold" mt={4}>  
                 Final Price: ₹{finalPrice.toFixed(2)}  
               </Text>  
             </Box>  
@@ -157,5 +180,8 @@ export default function CreateOrder() {
         )}  
       </VStack>  
     </Box>  
+      {/* Footer */}  
+    <Footer />
+    </>
   );  
 }
