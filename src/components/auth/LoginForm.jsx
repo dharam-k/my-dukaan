@@ -13,6 +13,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { MdLogin } from "react-icons/md";
+// import { erpnextLogin } from "../../services/erpnextApi";
 
 export default function LoginForm() {
   const [mobileOrEmail, setMobileOrEmail] = useState("");
@@ -20,25 +21,58 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = (e) => {  
+    e.preventDefault();  
+    setLoading(true);  
 
-    // Simulate login logic
-    setTimeout(() => {
-      setLoading(false);
-      if (!mobileOrEmail || !password) {
-        toast({
-          title: "Login failed",
-          description: "Please fill in all fields.",
-          status: "error",
-          duration: 2000,
-          isClosable: true,
-        });
-      } else {
-        window.location.href = "/dashboard";
-      }
-    }, 800);
+    if (!mobileOrEmail || !password) {  
+      setLoading(false);  
+      toast({  
+        position: "top",  
+        title: "Login failed",  
+        description: "Please fill in all fields.",  
+        status: "error",  
+        duration: 2000,  
+        isClosable: true,  
+      });  
+      return;  
+    }  
+
+    // Simulate API delay  
+    setTimeout(() => {  
+      const users = JSON.parse(localStorage.getItem("dummyUsers")) || [];  
+      const userFound = users.find(  
+        (user) =>  
+          (user.mobileOrEmail === mobileOrEmail || user.mobileOrEmail === mobileOrEmail.toLowerCase()) &&  
+          user.password === password  
+      );  
+
+      if (userFound) {  
+        setLoading(false);  
+        toast({  
+          position: "top",  
+          title: "Login successful",  
+          description: "Welcome back!",  
+          status: "success",  
+          duration: 1500,  
+          isClosable: true,  
+        });  
+
+        setTimeout(() => {  
+          window.location.href = "/dashboard";  
+        }, 1200);  
+      } else {  
+        setLoading(false);  
+        toast({  
+          position: "top",  
+          title: "Login failed",  
+          description: "Incorrect username or password",  
+          status: "error",  
+          duration: 2500,  
+          isClosable: true,  
+        });  
+      }  
+    }, 800);  
   };
 
   return (
