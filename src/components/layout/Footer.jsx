@@ -18,13 +18,13 @@ export default function Footer() {
           &copy; {new Date().getFullYear()} My Dukaan. All rights reserved.  
         </Text>  
         <HStack spacing={4} divider={<StackDivider borderColor="whiteAlpha.600" />}>  
-          <Link href="#" _hover={{ textDecoration: "underline" }}>  
+          <Link fontSize="sm" href="#" _hover={{ textDecoration: "underline" }}>  
             Privacy Policy  
           </Link>  
-          <Link href="#" _hover={{ textDecoration: "underline" }}>  
+          <Link fontSize="sm" href="#" _hover={{ textDecoration: "underline" }}>  
             Terms of Service  
           </Link>  
-          <Link href="#" _hover={{ textDecoration: "underline" }}>  
+          <Link fontSize="sm" href="#" _hover={{ textDecoration: "underline" }}>  
             Contact Us  
           </Link>  
         </HStack>  

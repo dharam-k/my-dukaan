@@ -4,7 +4,7 @@ import { StatCard } from "./StatCard";
 // Reusable component for the grid of stats  
 export function StatsGrid({ stats, onStatClick }) {  
   // Determine columns based on count or fixed  
-  const columns = useBreakpointValue({ base: 1, sm: 2, md: 4 });  
+  const columns = useBreakpointValue({ base: 2, sm: 2, md: 4 });  
 
   return (  
     <SimpleGrid columns={columns} spacing={4} mb={4}>  

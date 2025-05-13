@@ -8,6 +8,7 @@ import {
   Divider,  
   Button,  
   useDisclosure,
+  MenuDivider,
 } from "@chakra-ui/react";  
 import { FaWeight, FaBoxes, FaUsers, FaRupeeSign, FaMoneyBillWave} from "react-icons/fa";   
 import Navbar from "../../components/layout/Navbar";  
@@ -23,6 +24,7 @@ import WarehouseSelect from "./WarehouseSelect";
 import Footer from "../../components/layout/Footer";
 import { useNavigate } from "react-router-dom";
 import OrderSummaryModal from "./OrderSummaryModal";
+import UserProfileDrawer from "../../components/layout/UserProfileDrawer";
 
 const defaultBuyer = {  
   name: "John Doe",  
@@ -42,6 +44,10 @@ export default function CreateOrder() {
   const [dharmKata, setDharmKata] = useState("");  
   const [totalPoldar, setTotalPoldar] = useState("");
   const [orderDate, setOrderDate] = useState(new Date());  
+   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
+  
+    const openUserMenu = () => setIsUserMenuOpen(true);  
+    const closeUserMenu = () => setIsUserMenuOpen(false);  
 
   const { isOpen, onOpen, onClose } = useDisclosure();  
 
@@ -118,10 +124,14 @@ export default function CreateOrder() {
 
   return (  
      <>  
-      <Box maxW="1200px" mx="auto" p={{ base: 4, md: 8 }}>  
-        <Box mx="auto">  
-          <Navbar />  
-        </Box>  
+      <Box maxW="1200px" minH={575} mx="auto" p={{ base: 4, md: 8 }}>  
+        <Navbar onOpenUserMenu={openUserMenu} />  
+        <Divider mb={5} />
+        <UserProfileDrawer  
+          isOpen={isUserMenuOpen}  
+          onClose={closeUserMenu}  
+          userName="John Doe" // Pass real user name dynamically here  
+        />  
 
         <VStack spacing={6} align="stretch">  
           {/* Buyer Details */}  
@@ -272,7 +282,7 @@ export default function CreateOrder() {
         </VStack>  
       </Box>  
       {/* Footer */}  
-      <Footer />  
+      <Footer  />  
 
     {/* Order Summary Modal */}  
     <OrderSummaryModal  

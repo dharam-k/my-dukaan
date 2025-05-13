@@ -12,7 +12,8 @@ import {
   Spacer,  
   Button,  
   VStack,  
-  Center,    
+  Center,
+  Divider,    
 } from "@chakra-ui/react";  
 import { StatsGrid } from "../../components/ui/StatsGrid";
 import { RecentOrdersTable } from "../orders/RecentOrdersTable";
@@ -21,6 +22,7 @@ import { PendingPaymentsTable } from "../payments/PendingPaymentsTable";
 import { OrderOptions } from "../orders/OrderOptions";
 import Navbar from "../../components/layout/Navbar";
 import UserProfileDrawer from "../../components/layout/UserProfileDrawer";
+import Footer from "../../components/layout/Footer";
 
 export default function BuyerDashboard() {  
   const [recentOrders, setRecentOrders] = useState([]);  
@@ -136,10 +138,10 @@ export default function BuyerDashboard() {
   };  
 
   return (  
-    <Box p={{ base: 0, md: 8 }} maxW="1200px" maxWidth={{ base: 320, md: 800, "xl": 1000 }} mx="auto">  
+    <Box p={{ base: 0, md: 8 }} maxW="1200px" maxWidth={{ base: 355, md: 800, "xl": 1000 }} mx="auto">  
       {/* Header */}  
         <Navbar onOpenUserMenu={openUserMenu} />  
-
+        <Divider mb={5} />
         <UserProfileDrawer  
           isOpen={isUserMenuOpen}  
           onClose={closeUserMenu}  
@@ -147,7 +149,7 @@ export default function BuyerDashboard() {
         /> 
 
       {/* New Order Button */}  
-      <Center minH="200px" minWidth={{base: 300, md: 600}} mb={8} px={4}>  
+      <Center minH="200px" minWidth={{base: 300, md: 600}}  px={4}>  
         <VStack  
           spacing={6}  
           w="100%"  
@@ -179,6 +181,7 @@ export default function BuyerDashboard() {
       colorScheme="green"  
       isFitted={false}  
       w="100%"  
+      pt={5}
     >  
       <TabList  
         overflowX="auto"  
@@ -216,6 +219,9 @@ export default function BuyerDashboard() {
       {/* Pending Payments Table */}  
       <PendingPaymentsTable payments={pendingPayments} /> 
   
+        {/* Footer */}  
+        <Footer />  
     </Box>  
+    
   );  
 }  

@@ -19,7 +19,7 @@ export function OrderOptions() {
           padding={6} 
           onClick={() => handleOptionClick("DharmKata")}  
         >  
-          DharmKata  
+          धर्म कांटा  
         </Button>  
         <Button  
           colorScheme="purple"  
@@ -27,7 +27,7 @@ export function OrderOptions() {
           padding={6} 
           onClick={() => handleOptionClick("Bora")}  
         >  
-          Bora 
+          खुदरा
         </Button>  
       </Box> 
     </VStack>  
