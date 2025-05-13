@@ -117,10 +117,10 @@ export default function BuyerDashboard() {
     if (storedPayments) {  
       try {  
         const allPayments = JSON.parse(storedPayments);  
-        const pending = allPayments.filter(  
-          (p) => p.paymentStatus === "PENDING"  
-        );  
-        setPendingPayments(pending);  
+        // const pending = allPayments.filter(  
+        //   (p) => p.paymentStatus === "PENDING"  
+        // );  
+        setPendingPayments(allPayments);  
       } catch (e) {  
         console.error("Failed to parse payments from localStorage", e);  
       }  
@@ -161,10 +161,10 @@ export default function BuyerDashboard() {
           bg="gray.50"  
         >  
           <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="extrabold" color="green.600">  
-            Start Your New Order  
+            खरीदारी का नया सफर  
           </Text>  
           <Text fontSize={{ base: "md", md: "lg" }} color="gray.600" maxW="280px">  
-            Choose how you want to place your order.  
+            विश्वसनीय विक्रेताओं से सीधे आपके लिए 
           </Text>  
           <Box w="100%">  
             <Center>
