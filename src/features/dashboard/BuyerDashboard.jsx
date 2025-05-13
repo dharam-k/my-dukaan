@@ -131,12 +131,12 @@ export default function BuyerDashboard() {
   };  
 
   return (  
-    <Box p={{ base: 4, md: 8 }} maxW="1200px" maxWidth={{ base: 300, md: 800, "xl": 1000 }} mx="auto">  
+    <Box p={{ base: 0, md: 8 }} maxW="1200px" maxWidth={{ base: 320, md: 800, "xl": 1000 }} mx="auto">  
       {/* Header */}  
       <Navbar />
 
       {/* New Order Button */}  
-      <Center minH="200px" mb={8} px={4}>  
+      <Center minH="200px" minWidth={{base: 300, md: 600}} mb={8} px={4}>  
         <VStack  
           spacing={6}  
           w="100%"  
