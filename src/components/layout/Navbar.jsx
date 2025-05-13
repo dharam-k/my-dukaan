@@ -1,42 +1,46 @@
-import { Box, Button, Flex, Heading, Spacer, Text, useBreakpointValue } from "@chakra-ui/react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {  
+  Box,  
+  Flex,  
+  Text,  
+  useBreakpointValue,  
+  IconButton,  
+} from "@chakra-ui/react";  
+import { useState } from "react";  
+import { FaUserCircle } from "react-icons/fa";  
 
-
-
-export default function Navbar() { 
-  const headingSize = useBreakpointValue({ base: "md", md: "lg" });  
+export default function Navbar({ onOpenUserMenu }) {  
   const welcomeFontSize = useBreakpointValue({ base: "md", md: "xl" });  
   const [buyerName] = useState("John Doe");  
-  const navigate = useNavigate();  
 
+  return (  
+    <Box p={{ base: 4, md: 8 }} maxWidth={{ base: 300, md: 600 }}>  
+      <Flex direction="row" align="center" mb={6}>  
+        {/* User icon with border and circle */}  
+        <IconButton  
+          icon={<FaUserCircle />}  
+          aria-label="User Profile Menu"  
+          variant="ghost"  
+          fontSize="3xl"  
+          mr={4}  
+          onClick={onOpenUserMenu}  
+          title="Open User Profile Menu"  
+          border="2px solid"  
+          borderColor="green.500"  
+          borderRadius="full"  
+          p={1}  
+          _hover={{  
+            bg: "green.50",  
+            borderColor: "green.600",  
+            color: "green.600",  
+          }}  
+          size="lg"  
+        />  
 
-  const handleLogout = () => {  
-    // Clear auth tokens if needed here  
-    navigate("/login");  
-  }; 
-  
-  
-  return <>
-      <Box p={{ base: 4, md: 8 }} maxWidth={{ base: 300, md: 400 }}>
-          <Flex direction={{ base: "column", md: "row" }} align="center" mb={6}>  
-            <Heading size={headingSize}>Buyer Dashboard</Heading>  
-            <Spacer />  
-            <Button  
-              colorScheme="green"  
-              variant="outline"  
-              mt={{ base: 4, md: 0 }}  
-              width={{ base: "100%", md: "auto" }}  
-              onClick={handleLogout}  
-            >  
-              Logout  
-            </Button>  
-          </Flex>  
-    
-          {/* Welcome Text */}  
-          <Text fontSize={welcomeFontSize} mb={6}>  
-            Welcome back, <strong>{buyerName}</strong>!  
-          </Text>  
-      </Box>
-  </>
+        {/* Welcome Text */}  
+        <Text fontSize={welcomeFontSize} fontWeight="medium" whiteSpace="nowrap">  
+          Welcome back, <strong>{buyerName}</strong>!  
+        </Text>  
+      </Flex>  
+    </Box>  
+  );  
 }

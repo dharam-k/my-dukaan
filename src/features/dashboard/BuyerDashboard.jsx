@@ -20,6 +20,7 @@ import { RecentOrdersTable } from "../orders/RecentOrdersTable";
 import { PendingPaymentsTable } from "../payments/PendingPaymentsTable";
 import { OrderOptions } from "../orders/OrderOptions";
 import Navbar from "../../components/layout/Navbar";
+import UserProfileDrawer from "../../components/layout/UserProfileDrawer";
 
 export default function BuyerDashboard() {  
   const [recentOrders, setRecentOrders] = useState([]);  
@@ -28,6 +29,10 @@ export default function BuyerDashboard() {
   const [orderAnalyticsStats, setOrderAnalyticsStats] = useState([]);  
   const [inventoryStats, setInventoryStats] = useState([]);  
   const [sellersMillsStats, setSellersMillsStats] = useState([]);  
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
+
+  const openUserMenu = () => setIsUserMenuOpen(true);  
+  const closeUserMenu = () => setIsUserMenuOpen(false);  
 
   useEffect(() => { 
     
@@ -133,7 +138,13 @@ export default function BuyerDashboard() {
   return (  
     <Box p={{ base: 0, md: 8 }} maxW="1200px" maxWidth={{ base: 320, md: 800, "xl": 1000 }} mx="auto">  
       {/* Header */}  
-      <Navbar />
+        <Navbar onOpenUserMenu={openUserMenu} />  
+
+        <UserProfileDrawer  
+          isOpen={isUserMenuOpen}  
+          onClose={closeUserMenu}  
+          userName="John Doe" // Pass real user name dynamically here  
+        /> 
 
       {/* New Order Button */}  
       <Center minH="200px" minWidth={{base: 300, md: 600}} mb={8} px={4}>  
