@@ -1,7 +1,7 @@
-import { Button, StatLabel, StatNumber } from "@chakra-ui/react";
+import { Button, StatLabel, StatNumber } from "@chakra-ui/react";  
 
 // Reusable component for a single stat card button  
-export function StatCard({ label, value, onClick, isCurrency, suffix }) {  
+export function StatCard({ label, value, onClick, isCurrency, suffix, unit }) {  
   return (  
     <Button  
       p={4}  
@@ -21,8 +21,11 @@ export function StatCard({ label, value, onClick, isCurrency, suffix }) {
         {label}  
       </StatLabel>  
       <StatNumber fontSize={{ base: "lg", md: "2xl" }} color="green.700">  
-        {isCurrency ? `₹ ${value}${suffix ?? ""}` : `${value}${suffix ?? ""}`}  
+        {isCurrency  
+          ? `₹ ${value}${suffix ?? ""}`  
+          : `${value}${suffix ?? ""}`}{" "}  
+        {unit && <span style={{ fontSize: "0.75em", marginLeft: 2 }}>{unit}</span>}  
       </StatNumber>  
     </Button>  
   );  
-} 
+}

@@ -8,11 +8,14 @@ export function StatsGrid({ stats, onStatClick }) {
 
   return (  
     <SimpleGrid columns={columns} spacing={4} mb={4}>  
-      {stats.map(({ label, value }, idx) => (  
+      {stats.map(({ label, value, unit, isCurrency = false, suffix = "" }, idx) => ( 
         <Stat key={idx}>  
           <StatCard  
             label={label}  
             value={value}  
+            unit={unit}  
+            isCurrency={isCurrency}  
+            suffix={suffix} 
             onClick={() => onStatClick(label)}  
             isCurrency={false}  
           />  

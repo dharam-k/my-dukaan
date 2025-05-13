@@ -1,56 +1,64 @@
-
+import React from "react";  
 import {  
-  Box,  
-  Heading,  
-  Button,  
   Table,  
   Thead,  
   Tbody,  
   Tr,  
   Th,  
   Td,  
-  Tag,     
-} from "@chakra-ui/react"; 
+  Box,  
+  Text,  
+  Badge,  
+} from "@chakra-ui/react";  
+
 export function PendingPaymentsTable({ payments }) {  
-  return (  
-    <Box mt={10}>  
-      <Heading size="md" mb={4}>  
-        Pending Payments  
-      </Heading>  
-      <Box overflowX="auto">  
-        <Table variant="simple" size="sm" minW="700px">  
-          <Thead bg="green.100">  
-            <Tr>   
-              <Th>Order ID</Th>  
-              <Th>Seller Name</Th>  
-              <Th>Total Amount</Th>  
-              <Th>Paid Amount</Th>  
-              <Th>Amount Due</Th>  
-              <Th>Last Payment Date</Th>  
-            </Tr>  
-          </Thead>  
-          <Tbody>  
-            {payments.map(  
-              ({ paymentId, orderId, sellerName,totalAmount, paidAmount, amountDue, lastPaymentDate }) => (  
-                <Tr key={paymentId}>  
-                  <Td>{orderId}</Td>  
-                  <Td>{sellerName}</Td>  
-                  <Td>{totalAmount}</Td>  
-                  <Td>{paidAmount}</Td> 
-                  <Td>
-                      <Tag  
-                      colorScheme={"red"}  
-                      variant="solid"  
-                    >  
-                      {amountDue}  
-                    </Tag></Td>  
-                  <Td>{lastPaymentDate}</Td>   
-                </Tr>  
-              )  
-            )}  
-          </Tbody>  
-        </Table>  
+  if (!payments || payments.length === 0)  
+    return (  
+      <Box mt={8} p={4} borderWidth={1} borderRadius="md" bg="gray.50">  
+        <Text>No pending payments.</Text>  
       </Box>  
+    );  
+
+  return (  
+    <Box mt={8} borderWidth={1} borderRadius="md" overflowX="auto" p={4}>  
+      <Text fontSize="xl" mb={4} fontWeight="bold" color="green.600">  
+        Pending Payments  
+      </Text>  
+      <Table variant="striped" colorScheme="green" size="sm">  
+        <Thead>  
+          <Tr>  
+            <Th>Order ID</Th>
+            <Th>Seller</Th>  
+            <Th>Buyer</Th>  
+            <Th>Total Amount</Th>  
+            <Th>Paid Amount</Th>  
+            <Th>Due Amount</Th>  
+            <Th>Status</Th>  
+          </Tr>  
+        </Thead>  
+        <Tbody>  
+          {payments.map((p, i) => (  
+            <Tr key={`${p.orderId}-${i}`}>  
+              <Td>{p.orderId}</Td>  
+              <Td>{p.sellerName || "N/A"}</Td>  
+              <Td>{p.buyerName || "N/A"}</Td>  
+              <Td>₹{p.finalPrice?.toFixed(2) || "0.00"}</Td>  
+              <Td>₹{p.paymentAmount?.toFixed(2) || "0.00"}</Td>  
+              <Td>₹{p.dueAmount?.toFixed(2) || "0.00"}</Td>  
+              <Td>  
+                <Badge  
+                  colorScheme={p.paymentStatus === "COMPLETED" ? "green" : "orange"}  
+                  textTransform="uppercase"  
+                >  
+                  {p.paymentStatus}  
+                </Badge>  
+              </Td>  
+            </Tr>  
+          ))}  
+        </Tbody>  
+      </Table>  
     </Box>  
   );  
-}
+}  
+
+export default PendingPaymentsTable;
