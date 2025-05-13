@@ -19,7 +19,7 @@ export default function WeightInputs({
               <Box color="teal.500">  
                 <FaWeight />  
               </Box>  
-              <Box>Total Weight (kg)</Box>  
+              <Box> कुल वजन (kg)</Box>  
             </HStack>  
           </FormLabel>  
           <Input  
@@ -37,7 +37,7 @@ export default function WeightInputs({
               <Box color="orange.500">  
                 <FaBoxes />  
               </Box>  
-              <Box>Total Item</Box>  
+              <Box>कुल बोरा</Box>  
             </HStack>  
           </FormLabel>  
           <Input  
@@ -55,7 +55,7 @@ export default function WeightInputs({
               <Box color="purple.500">  
                 <FaUsers />  
               </Box>  
-              <Box>Total Poldar</Box>  
+              <Box>कुल पोल्डर</Box>  
             </HStack>  
           </FormLabel>  
           <Input  

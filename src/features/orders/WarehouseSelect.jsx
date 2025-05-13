@@ -24,7 +24,7 @@ export default function WarehouseSelect({ warehouse, setWarehouse }) {
             <Box color="blue.500">  
               <FaWarehouse />  
             </Box>  
-            <Box>Warehouse</Box>  
+            <Box>गोदाम</Box>  
           </HStack>  
         </FormLabel>  
         <CreatableSelect  

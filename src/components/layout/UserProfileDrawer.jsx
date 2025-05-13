@@ -25,8 +25,13 @@ import {
   FaIndustry,  
   FaSignOutAlt,  
 } from "react-icons/fa";  
+import { useNavigate } from "react-router-dom";
 
 export default function UserProfileDrawer({ isOpen, onClose, userName }) {  
+    const navigate = useNavigate()
+  function handleLogout(){
+    navigate("/login")
+  }
   return (  
     <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">  
       <DrawerOverlay />  
@@ -128,7 +133,7 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
             variant="solid"  
             leftIcon={<FaSignOutAlt />}  
             size="md"  
-            onClick={() => console.log("Logout")}  
+            onClick={handleLogout}  
           >  
             Logout  
           </Button>  

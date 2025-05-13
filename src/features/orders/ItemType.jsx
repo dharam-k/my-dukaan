@@ -3,26 +3,38 @@ import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";
 import CreatableSelect from "react-select/creatable";  
 import { FaTag } from "react-icons/fa";  
 
-const DEFAULT_OPTIONS = [  
-  { value: "Mansoori Dhaan", label: "Mansoori Dhaan" },  
-  { value: "Mota Dhaan", label: "Mota Dhaan" },  
-  { value: "Sambha Dhaan", label: "Sambha Dhaan" },  
-  { value: "Gehu", label: "Gehu" },  
-  { value: "Makka", label: "Makka" },  
-  { value: "Sarso", label: "Sarso" },  
-  { value: "Rice", label: "Rice" },  
+const options = [  
+  { eng: "Mansoori Dhaan", hin: "मंसूरीधान" },  
+  { eng: "Mota Dhaan", hin: "मोटाधान" },  
+  { eng: "Sambha Dhaan", hin: "संभांधान" },  
+  { eng: "Gehu", hin: "गेहूँ" },  
+  { eng: "Makka", hin: "मक्का" },  
+  { eng: "Sarso", hin: "सरसों" },  
+  { eng: "Rice", hin: "चावल" },  
 ];  
+
+const SELECT_OPTIONS = options.map(({ eng, hin }) => ({ label: hin, value: hin })); 
 
 export default function ItemType({  
   itemType,  
   setItemType,   
 }) {  
+
+ // Show Hindi label and value for selected English itemType  
   const selectedItem = itemType  
-    ? { value: itemType, label: itemType }  
+    ? (() => {  
+        const found = options.find(({ eng }) => eng === itemType);  
+        return found ? { label: found.hin, value: found.hin } : { label: itemType, value: itemType };  
+      })()  
     : null;  
 
   const handleItemTypeChange = (selectedOption) => {  
-    setItemType(selectedOption ? selectedOption.value : "");  
+    if (selectedOption) {  
+      const found = options.find(({ hin }) => hin === selectedOption.value);  
+      setItemType(found ? found.eng : selectedOption.value); // store English internally  
+    } else {  
+      setItemType("");  
+    }  
   };  
 
   return (  
@@ -31,15 +43,15 @@ export default function ItemType({
         <FormLabel>  
           <HStack spacing={2}>  
             <Box color="cyan.600"><FaTag /></Box>  
-            <Box>Type of Item</Box>  
+            <Box>वस्तु का प्रकार</Box>  
           </HStack>  
         </FormLabel>  
         <CreatableSelect  
           isClearable  
-          options={DEFAULT_OPTIONS}  
+          options={SELECT_OPTIONS}  
           onChange={handleItemTypeChange}  
           value={selectedItem}  
-          placeholder="Select or create item type..."  
+          placeholder="वस्तु का प्रकार चुनें या बनाएँ..."  
           formatCreateLabel={(inputValue) => `Create: "${inputValue}"`}  
         />  
       </FormControl>  

@@ -24,7 +24,7 @@ export default function DharmKataName({ dharmKata, setDharmKata }) {
             <Box color="teal.600">  
               <FaIdBadge />  
             </Box>  
-            <Box>DharmKata Name</Box>  
+            <Box>धर्म कांटा</Box>  
           </HStack>  
         </FormLabel>  
         <CreatableSelect  
@@ -32,7 +32,7 @@ export default function DharmKataName({ dharmKata, setDharmKata }) {
           options={DEFAULT_DHARMKATA}  
           onChange={handleChange}  
           value={selected}  
-          placeholder="Select or create DharmKata..."  
+          placeholder="धर्म कांटा चुनें या बनाएँ..."  
           formatCreateLabel={(inputValue) => `Create: "${inputValue}"`}  
         />  
       </FormControl>  

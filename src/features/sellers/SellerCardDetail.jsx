@@ -8,7 +8,7 @@ export default function SellerCardDetail({ seller }) {
   return (  
     <Box flex="1">  
       <Text fontSize="lg" fontWeight="bold" mb={2}>  
-        Seller Detail  
+        विक्रेता विवरण
       </Text>  
 
       <HStack mb={1} spacing={2}>  

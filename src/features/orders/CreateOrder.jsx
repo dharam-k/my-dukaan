@@ -225,7 +225,7 @@ export default function CreateOrder() {
                     <FaWeight />  
                   </Box>  
                   <Text>  
-                    Total Weight: {weightNum} kg ~ {(weightNum / 100).toFixed(2)} qntl  
+                    कुल वजन: {weightNum} kg ~ {(weightNum / 100).toFixed(2)} qntl  
                   </Text>  
                 </HStack>  
 
@@ -233,14 +233,14 @@ export default function CreateOrder() {
                   <Box color="orange.500">  
                     <FaBoxes />  
                   </Box>  
-                  <Text>Total Item: {itemNum}</Text>  
+                  <Text>कुल बोरा: {itemNum}</Text>  
                 </HStack>  
 
                 <HStack mb={2} spacing={2}>  
                   <Box color="purple.500">  
                     <FaUsers />  
                   </Box>  
-                  <Text>Total Poldar: {poldarNum}</Text>  
+                  <Text>कुल पोल्डर: {poldarNum}</Text>  
                 </HStack>  
 
                 <Divider my={4} />  
@@ -249,28 +249,26 @@ export default function CreateOrder() {
                   <Box color="green.500">  
                     <FaMoneyBillWave />  
                   </Box>  
-                  <Text>Per Head Poldari: ₹{perHeadPoldari.toFixed(2)}</Text>  
+                  <Text>प्रति व्यक्ति पोल्डारी: ₹{perHeadPoldari.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>   
                 </HStack>  
 
                 <HStack mb={2} spacing={2}>  
                   <Box color="blue.500">  
                     <FaRupeeSign />  
                   </Box>  
-                  <Text>Total Price (Rs): + ₹{totalPrice.toFixed(2)}</Text>  
+                 <Text>कुल कीमत (Rs): + ₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>   
                 </HStack>  
 
                 <HStack mb={2} spacing={2}>  
                   <Box color="red.500">  
                     <FaMoneyBillWave />  
                   </Box>  
-                  <Text textColor={"red"}>Total Poldari (Rs): - ₹{totalPolidari.toFixed(2)}</Text>  
+                  <Text textColor={"red"}>कुल पोल्दारी (Rs): - ₹{totalPolidari.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>    
                 </HStack>  
 
-
-
                 <Text fontWeight="bold" mt={4}>  
-                  Final Price: ₹{finalPrice.toFixed(2)}  
-                </Text>  
+                  अंतिम कीमत: ₹{finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}  
+                </Text>   
 
                 {/* Submit Button */}  
                 <Button mt={6} colorScheme="green" onClick={handleSubmit}>  

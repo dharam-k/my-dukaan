@@ -20,7 +20,7 @@ export default function RateInput({
               <ChakraBox color="green.600">  
                 <FaRupeeSign />  
               </ChakraBox>  
-              <Box>Rate per Quantal (100kg)</Box>  
+              <Box>प्रति क्वांटल दर (100 किग्रा)</Box>  
             </HStack>  
           </FormLabel>  
           <Input  
@@ -36,9 +36,9 @@ export default function RateInput({
           <FormLabel>  
             <HStack spacing={2}>  
               <ChakraBox color="orange.600">  
-                <FaMoneyBillWave />  
+                <FaRupeeSign />  
               </ChakraBox>  
-              <Box>Poldari Rate (Rs)</Box>  
+              <Box>पोलदारी भाव</Box>  
             </HStack>  
           </FormLabel>  
           <Input  
