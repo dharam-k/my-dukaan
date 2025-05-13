@@ -145,7 +145,7 @@ export default function BuyerDashboard() {
         <UserProfileDrawer  
           isOpen={isUserMenuOpen}  
           onClose={closeUserMenu}  
-          userName="John Doe" // Pass real user name dynamically here  
+          userName="Jai Hanuman Traders" // Pass real user name dynamically here  
         /> 
 
       {/* New Order Button */}  
@@ -217,7 +217,7 @@ export default function BuyerDashboard() {
       {/* Recent Orders Table */}  
       <RecentOrdersTable orders={recentOrders} onViewOrder={handleViewOrder} />  
       {/* Pending Payments Table */}  
-      <PendingPaymentsTable payments={pendingPayments} /> 
+      <PendingPaymentsTable orders={recentOrders} payments={pendingPayments} /> 
   
         {/* Footer */}  
         <Footer />  

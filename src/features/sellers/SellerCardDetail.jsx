@@ -6,7 +6,7 @@ export default function SellerCardDetail({ seller }) {
   if (!seller) return null;  
 
   return (  
-    <Box flex="1">  
+    <Box minW={'51%'} flex="1">  
       <Text fontSize="lg" fontWeight="bold" mb={2}>  
         विक्रेता विवरण
       </Text>  

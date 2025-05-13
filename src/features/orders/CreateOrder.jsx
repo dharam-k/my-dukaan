@@ -27,9 +27,9 @@ import OrderSummaryModal from "./OrderSummaryModal";
 import UserProfileDrawer from "../../components/layout/UserProfileDrawer";
 
 const defaultBuyer = {  
-  name: "John Doe",  
-  address: "123 Buyer St, City",  
-  phone: "555-1234",  
+  name: "Jai Hanuman Traders",  
+  address: "Bankata Bazar, UP",  
+  phone: "7011571659",  
 };  
 
 export default function CreateOrder() {  
@@ -155,7 +155,7 @@ export default function CreateOrder() {
                   Seller Details & Date  
                 </Text>  
                 <Box p={4} borderWidth="1px" borderRadius="md" bg="blue.50">  
-                  <HStack spacing={2}>  
+                  <HStack alignItems={"baseline"} spacing={2}>  
                     <SellerCardDetail seller={selectedSeller} />  
                     {/* Bind DatePicker */}  
                     <DatePicker  

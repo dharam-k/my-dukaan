@@ -86,7 +86,7 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
   };  
 
   return (  
-    <Box>  
+    <Box display={"flex"} flexDirection={"column"} p={0}>  
       <FormLabel>Search Seller by Name</FormLabel>  
       <Input  
         placeholder="Type seller name..."  
@@ -112,7 +112,8 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
                 colorScheme="blue"  
                 key={i}  
                 size="sm"  
-                justifyContent="flex-start"  
+                justifyContent="flex-start"
+                p={3}  
                 onClick={() => handleSelectSeller(seller)}  
               >  
                 {seller.name}  
@@ -125,7 +126,8 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
           )}  
           <Button  
             size="sm"  
-            mt={2}  
+            mt={2} 
+            p={3} 
             colorScheme="green"  
             onClick={handleCreateSellerToggle}  
             isFullWidth  
@@ -139,6 +141,7 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
         <Button  
           size="sm"  
           mt={2}  
+          p={5}
           colorScheme="green"  
           onClick={handleCreateSellerToggle}  
           isFullWidth  

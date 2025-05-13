@@ -62,10 +62,14 @@ const inputUnitsMap = {
   warehouse: "",  
 };  
 
-export default function OrderDetail({ isOpen, onClose, orderSummary }) {  
+export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSummary  }) {  
   const cancelRef = useRef();  
-  
-  console.log(orderSummary)
+
+  // Optional: Calculate due amount safely  
+  const dueAmount =  
+    paymentSummary && paymentSummary.finalPrice != null && paymentSummary.paymentAmount != null  
+      ? paymentSummary.finalPrice - paymentSummary.paymentAmount  
+      : 0;  
 
   function handleClose() {  
       onClose();
@@ -169,7 +173,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary }) {
 
               {/* Inputs Section */}  
               <Box>  
-                <Text  
+                <Box  
                   fontWeight="bold"  
                   color="green.600"  
                   mb={2}  
@@ -182,7 +186,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary }) {
                     <Icon as={FaClipboardList} />  
                     <Text>Order Details</Text>  
                   </HStack>  
-                </Text>  
+                </Box>   
                 <SimpleGrid columns={{ base: 1, md: 1 }} spacing={3}>  
                   {Object.entries(orderSummary.inputs).map(([key, val]) => {  
                     const IconComp = inputIconsMap[key] || FaClipboardList;  
@@ -210,7 +214,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary }) {
 
               {/* Calculations Section */}  
               <Box>  
-                <Text  
+                <Box  
                   fontWeight="bold"  
                   color="green.600"  
                   mb={2}  
@@ -223,7 +227,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary }) {
                     <Icon as={FaCalculator} />  
                     <Text>Price Summary</Text>  
                   </HStack>  
-                </Text>  
+                </Box>   
                 <SimpleGrid columns={{ base: 1, md: 1 }} spacing={3}>  
                   {[  
                     "perHeadPoldari",  
@@ -282,7 +286,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary }) {
                         {isFinalPrice ? (  
                           <Box  
                             display="flex"  
-                            justifyContent="space-between"  
+                            // justifyContent="space-between"  
                             flex="1"  
                           >  
                             {content}  
@@ -295,6 +299,64 @@ export default function OrderDetail({ isOpen, onClose, orderSummary }) {
                   })}  
                 </SimpleGrid>  
               </Box>  
+
+              {/* Payment Summary Section */}  
+                {paymentSummary && (  
+                  <Box>  
+                    <Box  
+                      fontWeight="bold"  
+                      color="green.600"  
+                      mb={2}  
+                      fontSize="lg"  
+                      borderBottom="2px solid"  
+                      borderColor="green.300"  
+                      pb={1}  
+                    >  
+                      <HStack spacing={2}>  
+                        <Icon as={FaMoneyBillWave} />  
+                        <Text>Payment Summary</Text>  
+                      </HStack>  
+                    </Box>  
+                    <SimpleGrid columns={{ base: 1, md: 1 }} spacing={3}>  
+                      <HStack>  
+                        <Text fontWeight="semibold" minW="140px">  
+                          Total Amount:  
+                        </Text>  
+                        <Text>₹{paymentSummary.finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>  
+                      </HStack>  
+                      <HStack>  
+                        <Text fontWeight="semibold" minW="140px">  
+                          Paid Amount:  
+                        </Text>  
+                        <Text>₹{paymentSummary.paymentAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>  
+                      </HStack>  
+                      <HStack border={"2px solid"}  
+                        borderColor={"red.600"}  
+                        borderRadius={"md"}
+                        p={2}
+                        
+                        >
+                          
+                        <Text fontWeight="semibold" minW="140px">  
+                          Due Amount:  
+                        </Text>  
+                        <Text color={dueAmount > 0 ? "red.600" : "green.600"}>  
+                          ₹{dueAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}  
+                        </Text>  
+                      </HStack>  
+                      <HStack>  
+                        <Text fontWeight="semibold" minW="140px">  
+                          Status:  
+                        </Text>  
+                        <Text fontWeight="bold" color={  
+                          paymentSummary.paymentStatus === "Paid" ? "green.600" : paymentSummary.paymentStatus === "Pending" ? "orange.600" : "red.600"  
+                        }>  
+                          {paymentSummary.paymentStatus}  
+                        </Text>  
+                      </HStack>  
+                    </SimpleGrid>  
+                  </Box>  
+                )}  
             </VStack>  
  
           )}  

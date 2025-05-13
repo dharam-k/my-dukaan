@@ -3,8 +3,7 @@ import {
   Table, Thead, Tbody, Tr, Th, Td, Button,  
   Box, Text, HStack  
 } from "@chakra-ui/react";  
-import OrderSummaryModal from "./OrderSummaryModal"; // import your modal component  
-import OrderDetail from "./OrderDetail";
+import OrderDetail from "./OrderDetail";  
 
 const PAGE_SIZE = 5;  
 
@@ -12,6 +11,7 @@ export function RecentOrdersTable({ orders }) {
   const [currentPage, setCurrentPage] = useState(1);  
   const [selectedOrder, setSelectedOrder] = useState(null);  
   const [isModalOpen, setIsModalOpen] = useState(false);  
+  const [paymentSummary, setPaymentSummary] = useState(null); // new state for payment info  
 
   if (!orders || orders.length === 0)  
     return (  
@@ -20,21 +20,37 @@ export function RecentOrdersTable({ orders }) {
       </Box>  
     );  
 
-  // Sort descending by date  
   const sortedOrders = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));  
   const totalPages = Math.ceil(sortedOrders.length / PAGE_SIZE);  
   const startIdx = (currentPage - 1) * PAGE_SIZE;  
   const currentOrders = sortedOrders.slice(startIdx, startIdx + PAGE_SIZE);  
 
-  const openModal = (order) => { 
-    console.log(order) 
+  const openModal = (order) => {   
     setSelectedOrder(order);  
     setIsModalOpen(true);  
+
+    try {  
+      const storedPayment = localStorage.getItem(`payments`);  
+      if (storedPayment) {  
+        const paymentData = JSON.parse(storedPayment);  
+        // Find payment object matching current order.orderId  
+        const paymentFiltered = paymentData.find(p => p.orderId === order.orderId);  
+        
+        setPaymentSummary(paymentFiltered || null);  
+        console.log(paymentFiltered);  
+      } else {  
+        setPaymentSummary(null); // no payment data stored  
+      }  
+    } catch (error) {  
+      console.error("Failed to parse payment data from localStorage", error);  
+      setPaymentSummary(null);  
+    } 
   };  
 
   const closeModal = () => {  
     setIsModalOpen(false);  
     setSelectedOrder(null);  
+    setPaymentSummary(null);  
   };  
 
   return (  
@@ -82,7 +98,6 @@ export function RecentOrdersTable({ orders }) {
         </Tbody>  
       </Table>  
 
-      {/* Pagination Controls */}  
       <HStack mt={4} justify="flex-end" spacing={2}>  
         <Button size="sm" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>  
           Previous  
@@ -95,12 +110,12 @@ export function RecentOrdersTable({ orders }) {
         </Button>  
       </HStack>  
 
-      {/* Modal */}  
       {selectedOrder && (  
-        <OrderDetail 
+        <OrderDetail   
           isOpen={isModalOpen}  
           onClose={closeModal}  
           orderSummary={selectedOrder}  
+          paymentSummary={paymentSummary}  // pass payment info here  
         />  
       )}  
     </Box>  

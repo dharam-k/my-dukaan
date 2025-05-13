@@ -10,7 +10,7 @@ import { FaUserCircle } from "react-icons/fa";
 
 export default function Navbar({ onOpenUserMenu }) {  
   const welcomeFontSize = useBreakpointValue({ base: "md", md: "xl" });  
-  const [buyerName] = useState("John Doe");  
+  const [buyerName] = useState("Jai Hanuman Traders");  
 
   return (  
     <Box p={{ base: 4, md: 8 }} maxWidth={{ base: 300, md: 600 }}>  
@@ -38,7 +38,7 @@ export default function Navbar({ onOpenUserMenu }) {
 
         {/* Welcome Text */}  
         <Text fontSize={welcomeFontSize} fontWeight="medium" whiteSpace="nowrap">  
-          Welcome back, <strong>{buyerName}</strong>!  
+          Welcome, <strong>{buyerName}</strong>!  
         </Text>  
       </Flex>  
     </Box>  

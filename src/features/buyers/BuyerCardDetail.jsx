@@ -8,7 +8,7 @@ export default function BuyerCardDetail({ buyer }) {
   return (  
     <Box bg="green.50" p={4} borderRadius="md" boxShadow="sm">  
       <Text fontSize="lg" fontWeight="bold" mb={4}>  
-        Buyer Detail  
+        क्रेता विवरण  
       </Text>  
 
       <HStack mb={2} spacing={3}>  

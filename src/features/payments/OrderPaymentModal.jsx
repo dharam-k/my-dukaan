@@ -28,7 +28,7 @@ function OrderPaymentModal({
   const finalPrice = orderSummary.calculations.finalPrice || 0;  
   const amountNum = parseFloat(paymentAmount) || 0;  
   const dueAmount = finalPrice - amountNum; 
-  const paymentStatus = dueAmount > 0 ? "PENDING" : "COMPLETED";  
+  const paymentStatus = dueAmount > 0.00 ? "PENDING" : "COMPLETED";  
 
   const handlePaymentSubmit = () => {  
     if (!paymentAmount || amountNum <= 0) {  
