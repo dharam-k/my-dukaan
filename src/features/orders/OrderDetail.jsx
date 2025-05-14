@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";  
+import  { useRef } from "react";  
 import {  
   Box,  
   VStack,  
@@ -13,54 +13,18 @@ import {
   ModalHeader,  
   ModalCloseButton,  
   ModalBody, 
-  Button,  
-  ModalFooter, 
 } from "@chakra-ui/react";  
 import {  
   FaClipboardList,  
   FaHashtag,  
   FaUser,  
   FaStore,  
-  FaCalendarAlt,  
-  FaTag,  
-  FaMoneyBillWave,  
-  FaRupeeSign,  
+  FaCalendarAlt,
+  FaMoneyBillWave, 
   FaCalculator,  
-  FaWarehouse,  
 } from "react-icons/fa";  
-import { useNavigate } from "react-router-dom";
-import OrderPaymentModal from "../payments/OrderPaymentModal";
+import { calculationIconsMap, inputIconsMap, inputUnitsMap } from "../../utils/constants";
 
-const inputIconsMap = {  
-  ratePerQuantal: FaRupeeSign,  
-  poldariRate: FaMoneyBillWave,  
-  dharmKata: FaTag,  
-  totalWeight: FaTag,  
-  totalItem: FaTag,  
-  totalPoldar: FaTag,  
-  itemType: FaTag,  
-  quality: FaTag,  
-  warehouse: FaWarehouse,  
-};  
-
-const calculationIconsMap = {  
-  totalPolidari: FaMoneyBillWave,  
-  perHeadPoldari: FaMoneyBillWave,  
-  totalPrice: FaRupeeSign,  
-  finalPrice: FaRupeeSign,  
-};  
-
-const inputUnitsMap = {  
-  ratePerQuantal: "₹/quantal",  
-  poldariRate: "₹",  
-  dharmKata: "",  
-  totalWeight: "kg",  
-  totalItem: "pcs",  
-  totalPoldar: "persons",  
-  itemType: "",  
-  quality: "",  
-  warehouse: "",  
-};  
 
 export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSummary  }) {  
   const cancelRef = useRef();  
@@ -88,7 +52,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
         <ModalHeader>  
           <HStack spacing={3}>  
             <Icon as={FaClipboardList} color="green.600" boxSize={6} />  
-            <Text>Order Confirmation</Text>  
+            <Text>Order Detail</Text>  
           </HStack>  
           <Divider mt={2} />  
           {orderSummary?.orderId && (  

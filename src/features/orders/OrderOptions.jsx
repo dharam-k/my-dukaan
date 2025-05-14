@@ -7,7 +7,8 @@ export function OrderOptions() {
   const handleOptionClick = (option) => {  
     // alert("Selected option : "+option); 
     if(option == "DharmKata")  navigate("/create-order");
-    if(option == "Bora")  navigate("/create-order");
+    if(option == "Bora")  alert("comming soon..");
+    if(option == "truck-load") alert("comming soon..");
   };  
 
   return (  
@@ -28,6 +29,14 @@ export function OrderOptions() {
           onClick={() => handleOptionClick("Bora")}  
         >  
           खुदरा
+        </Button>  
+        <Button  
+          colorScheme="green"  
+          flex={1}  
+          padding={6} 
+          onClick={() => handleOptionClick("truck-load")}  
+        >  
+          ट्रक लोड
         </Button>  
       </Box> 
     </VStack>  

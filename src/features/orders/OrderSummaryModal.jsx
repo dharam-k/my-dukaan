@@ -14,53 +14,19 @@ import {
   ModalCloseButton,  
   ModalBody, 
   Button,  
-  ModalFooter, 
 } from "@chakra-ui/react";  
 import {  
   FaClipboardList,  
   FaHashtag,  
   FaUser,  
   FaStore,  
-  FaCalendarAlt,  
-  FaTag,  
-  FaMoneyBillWave,  
-  FaRupeeSign,  
-  FaCalculator,  
-  FaWarehouse,  
+  FaCalendarAlt,   
+  FaCalculator,   
 } from "react-icons/fa";  
 import { useNavigate } from "react-router-dom";
 import OrderPaymentModal from "../payments/OrderPaymentModal";
+import { inputUnitsMap, calculationIconsMap, inputIconsMap } from "../../utils/constants";
 
-const inputIconsMap = {  
-  ratePerQuantal: FaRupeeSign,  
-  poldariRate: FaMoneyBillWave,  
-  dharmKata: FaTag,  
-  totalWeight: FaTag,  
-  totalItem: FaTag,  
-  totalPoldar: FaTag,  
-  itemType: FaTag,  
-  quality: FaTag,  
-  warehouse: FaWarehouse,  
-};  
-
-const calculationIconsMap = {  
-  totalPolidari: FaMoneyBillWave,  
-  perHeadPoldari: FaMoneyBillWave,  
-  totalPrice: FaRupeeSign,  
-  finalPrice: FaRupeeSign,  
-};  
-
-const inputUnitsMap = {  
-  ratePerQuantal: "₹/quantal",  
-  poldariRate: "₹",  
-  dharmKata: "",  
-  totalWeight: "kg",  
-  totalItem: "pcs",  
-  totalPoldar: "persons",  
-  itemType: "",  
-  quality: "",  
-  warehouse: "",  
-};  
 
 export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {  
   const cancelRef = useRef();  
@@ -301,12 +267,13 @@ export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
                       <HStack  
                         key={key}  
                         align="center"  
-                        spacing={4}  
+                        spacing={2}  
                         border={isFinalPrice ? "2px solid" : "none"}  
                         borderColor={isFinalPrice ? "green.600" : "none"}  
                         borderRadius={isFinalPrice ? "md" : "none"}  
                         p={isFinalPrice ? 2 : 0}  
-                        w="full"  
+                        w="full"
+                        fontSize={16}  
                       >  
                         <Icon  
                           as={IconComp}  

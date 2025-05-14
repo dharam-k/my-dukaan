@@ -10,7 +10,7 @@ import {
   useDisclosure,
   MenuDivider,
 } from "@chakra-ui/react";  
-import { FaWeight, FaBoxes, FaUsers, FaRupeeSign, FaMoneyBillWave} from "react-icons/fa";   
+import { FaWeight, FaBoxes, FaUsers, FaRupeeSign, FaMoneyBillWave, FaBalanceScaleRight} from "react-icons/fa";   
 import Navbar from "../../components/layout/Navbar";  
 import SellerSelector from "../sellers/SellerSelector";  
 import SellerCardDetail from "../sellers/SellerCardDetail";  
@@ -35,7 +35,7 @@ const defaultBuyer = {
 export default function CreateOrder() {  
   const [selectedSeller, setSelectedSeller] = useState(null);  
   const [ratePerQuantal, setRatePerQuantal] = useState("");  
-  const [poldariRate, setPoldariRate] = useState(5);  
+  const [poldariRate, setPoldariRate] = useState(4);  
   const [totalWeight, setTotalWeight] = useState("");  
   const [totalItem, setTotalItem] = useState("");  
   const [itemType, setItemType] = useState("");  
@@ -43,6 +43,7 @@ export default function CreateOrder() {
   const [warehouse, setWarehouse] = useState(""); 
   const [dharmKata, setDharmKata] = useState("");  
   const [totalPoldar, setTotalPoldar] = useState("");
+  const [baadWajan, setBaadWajan] = useState(500);
   const [orderDate, setOrderDate] = useState(new Date());  
    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
   
@@ -60,8 +61,10 @@ export default function CreateOrder() {
   const poldarNum = parseFloat(totalPoldar) || 0;   
   const totalPolidari = itemNum * poldariNum;  
   const perHeadPoldari = poldarNum > 0 ? totalPolidari / poldarNum : 0;  
-  const totalPrice = (weightNum / 100) * rateNum; 
-  const finalPrice = totalPrice - totalPolidari;  
+  const totalbaadWajan =  parseFloat(((baadWajan/100)* weightNum)/1000).toFixed(2);
+  const finalWeight = (weightNum - totalbaadWajan);
+  const totalPrice = (finalWeight / 100) * rateNum; 
+  const finalPrice = totalPrice - totalPolidari; 
 
 
   const navigate = useNavigate();  
@@ -93,8 +96,11 @@ export default function CreateOrder() {
       inputs: {  
         ratePerQuantal,  
         poldariRate,  
-        dharmKata,  
-        totalWeight,  
+        dharmKata, 
+        baadWajan, 
+        totalWeight,
+        totalbaadWajan,
+        finalWeight,
         totalItem,  
         totalPoldar,  
         itemType,  
@@ -203,78 +209,149 @@ export default function CreateOrder() {
                   setTotalWeight={setTotalWeight}  
                   totalItem={totalItem}  
                   setTotalItem={setTotalItem}  
-                  totalPoldar={totalPoldar} // new prop  
+                  totalPoldar={totalPoldar}   
                   setTotalPoldar={setTotalPoldar}  
+                  baadWajan={baadWajan}   
+                  setBaadWajan={setBaadWajan} 
                 />  
               </Box>  
+              <Box
+                p={6}
+                borderWidth="1px"
+                borderRadius="md"
+                bg="gray.100"
+                maxW="1000px"
+                fontSize="lg"
+              >
+                <Text borderBottom="1px" fontSize="xl" fontWeight="bold" mb={4}>
+                  Calculation Summary
+                </Text>
 
-              <Box  
-                p={6}  
-                borderWidth="1px"  
-                borderRadius="md"  
-                bg="gray.100"  
-                maxW="400px"  
-                fontSize="lg"  
-              >  
-                <Text borderBottom="1px" fontSize="xl" fontWeight="bold" mb={4}>  
-                  Calculation  
-                </Text>  
+                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                  {/* POLDARI BOX */}
+                  <Box p={4} borderWidth="1px" borderRadius="md" bg="white">
+                    <Text fontWeight="bold" mb={2}>पोल्दारी</Text>
+                    <Divider my={2} />
+                    <HStack mb={2} spacing={2}>
+                      <Box color="purple.500">
+                        <FaUsers />
+                      </Box>
+                      <Text>कुल पोल्डर: {poldarNum}</Text>
+                    </HStack>
+                    <HStack mb={2} spacing={2}>
+                      <Box color="red.500">
+                        <FaMoneyBillWave />
+                      </Box>
+                      <Text >
+                        कुल पोल्दारी (Rs): ₹
+                        {totalPolidari.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </HStack>
+                    <Divider my={2} />
+                    <HStack mb={2} spacing={2}>
+                      <Box color="green.500">
+                        <FaMoneyBillWave />
+                      </Box>
+                      <Text textColor="green">
+                        प्रति व्यक्ति पोल्डारी: ₹
+                        {perHeadPoldari.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </HStack>
+                  </Box>
 
-                <HStack mb={2} spacing={2}>  
-                  <Box color="teal.500">  
-                    <FaWeight />  
-                  </Box>  
-                  <Text>  
-                    कुल वजन: {weightNum} kg ~ {(weightNum / 100).toFixed(2)} qntl  
-                  </Text>  
-                </HStack>  
+                  {/* WEIGHT BOX */}
+                  <Box p={4} borderWidth="1px" borderRadius="md" bg="white">
+                    <Text fontWeight="bold" mb={2}>वजन</Text>
+                    <Divider my={2} />
+                    <HStack mb={2} spacing={2}>
+                      <Box color="orange.500">
+                        <FaBoxes />
+                      </Box>
+                      <Text>कुल बोरा: {itemNum}</Text>
+                    </HStack>
+                    <HStack mb={2} spacing={2}>
+                      <Box color="teal.500">
+                        <FaWeight />
+                      </Box>
+                      <Text>
+                        वजन: {weightNum} kg ~ {(weightNum / 100).toFixed(2)} qntl
+                      </Text>
+                    </HStack>
 
-                <HStack mb={2} spacing={2}>  
-                  <Box color="orange.500">  
-                    <FaBoxes />  
-                  </Box>  
-                  <Text>कुल बोरा: {itemNum}</Text>  
-                </HStack>  
+                    <HStack mb={2} spacing={2}>
+                      <Box color="red.500">
+                        <FaBalanceScaleRight />
+                      </Box>
+                      <Text textColor="red">
+                        कुल बाद वजन : {totalbaadWajan > 0 ? " - " : ""}
+                        {totalbaadWajan} kg
+                      </Text>
+                    </HStack>
+                    <Divider my={2} />
+                    <HStack mb={2} spacing={2}>
+                      <Box color="teal.500">
+                        <FaWeight />
+                      </Box>
+                      <Text color="green.500">
+                        कुल वजन: {finalWeight > 0 ? (finalWeight).toFixed(2) : "0.00"} kg
+                      </Text>
+                    </HStack>
 
-                <HStack mb={2} spacing={2}>  
-                  <Box color="purple.500">  
-                    <FaUsers />  
-                  </Box>  
-                  <Text>कुल पोल्डर: {poldarNum}</Text>  
-                </HStack>  
+  
+                  </Box>
 
-                <Divider my={4} />  
+                  {/* PRICE SUMMARY BOX */}
+                  <Box p={4} borderWidth="1px" borderRadius="md" bg="white">
+                    <Text fontWeight="bold" mb={2}>कीमत सारांश</Text>
+                    <Divider my={2} />
+                    <HStack mb={2} spacing={2}>
+                      <Box color="blue.500">
+                        <FaRupeeSign />
+                      </Box>
+                      <Text>
+                        कुल कीमत : + ₹
+                        {totalPrice.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </HStack>
+                    <HStack mb={2} spacing={2}>
+                      <Box color="red.500">
+                        <FaMoneyBillWave />
+                      </Box>
+                      <Text textColor="red">
+                        कुल पोल्दारी: - ₹
+                        {totalPolidari.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </HStack>
 
-                <HStack mb={2} spacing={2}>  
-                  <Box color="green.500">  
-                    <FaMoneyBillWave />  
-                  </Box>  
-                  <Text>प्रति व्यक्ति पोल्डारी: ₹{perHeadPoldari.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>   
-                </HStack>  
+                    <Divider my={2} />
 
-                <HStack mb={2} spacing={2}>  
-                  <Box color="blue.500">  
-                    <FaRupeeSign />  
-                  </Box>  
-                 <Text>कुल कीमत (Rs): + ₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>   
-                </HStack>  
+                    <Text color="green.500" fontWeight="bold" mt={2}>
+                      अंतिम कीमत: ₹
+                      {finalPrice.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Text>
+                  </Box>
+                </SimpleGrid>
 
-                <HStack mb={2} spacing={2}>  
-                  <Box color="red.500">  
-                    <FaMoneyBillWave />  
-                  </Box>  
-                  <Text textColor={"red"}>कुल पोल्दारी (Rs): - ₹{totalPolidari.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>    
-                </HStack>  
-
-                <Text fontWeight="bold" mt={4}>  
-                  अंतिम कीमत: ₹{finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}  
-                </Text>   
-
-                {/* Submit Button */}  
-                <Button mt={6} colorScheme="green" onClick={handleSubmit}>  
-                  Submit Order  
-                </Button>  
-              </Box>  
+                {/* Submit Button */}
+                <Button mt={6} colorScheme="green" onClick={handleSubmit}>
+                  Submit Order
+                </Button>
+              </Box>
             </>  
           )}  
         </VStack>  

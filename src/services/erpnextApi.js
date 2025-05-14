@@ -1,5 +1,5 @@
 // Set your base ERPNext API URL
-const BASE_URL = "https://your-erpnext-instance.com/api";
+const BASE_URL = "http://34.220.18.12/api";
 
 // --- Helper function for API requests ---
 async function apiRequest(endpoint, method = "GET", data = null, token = null) {

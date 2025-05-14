@@ -1,6 +1,6 @@
 import React from "react";  
 import { Box, FormControl, FormLabel, Input, SimpleGrid, HStack } from "@chakra-ui/react";  
-import { FaWeight, FaBoxes, FaUsers } from "react-icons/fa";  
+import { FaWeight, FaBoxes, FaUsers, FaBalanceScaleRight } from "react-icons/fa";  
 
 export default function WeightInputs({  
   totalWeight,  
@@ -9,6 +9,8 @@ export default function WeightInputs({
   setTotalItem,  
   totalPoldar,  
   setTotalPoldar,  
+  baadWajan,
+  setBaadWajan,
 }) {  
   return (  
     <Box mt={4}>  
@@ -19,7 +21,7 @@ export default function WeightInputs({
               <Box color="teal.500">  
                 <FaWeight />  
               </Box>  
-              <Box> कुल वजन (kg)</Box>  
+              <Box>वजन (kg)</Box>  
             </HStack>  
           </FormLabel>  
           <Input  
@@ -29,8 +31,7 @@ export default function WeightInputs({
             value={totalWeight}  
             onChange={(e) => setTotalWeight(e.target.value)}  
           />  
-        </FormControl>  
-
+        </FormControl> 
         <FormControl>  
           <FormLabel>  
             <HStack spacing={2}>  
@@ -48,14 +49,30 @@ export default function WeightInputs({
             onChange={(e) => setTotalItem(e.target.value)}  
           />  
         </FormControl>  
-
+        <FormControl>
+          <FormLabel>
+            <HStack spacing={2}>
+              <Box color="red.500">
+                <FaBalanceScaleRight />
+              </Box>
+              <Box>बाद वजन (grams/qntl)</Box>
+            </HStack>
+          </FormLabel>
+          <Input
+            type="number"
+            min="0"
+            placeholder="Enter baad wajan"
+            value={baadWajan}
+            onChange={(e) => setBaadWajan(e.target.value)}
+          />
+        </FormControl> 
         <FormControl>  
           <FormLabel>  
             <HStack spacing={2}>  
               <Box color="purple.500">  
                 <FaUsers />  
               </Box>  
-              <Box>कुल पोल्डर</Box>  
+              <Box>कुल पोलदार</Box>  
             </HStack>  
           </FormLabel>  
           <Input  
@@ -65,7 +82,7 @@ export default function WeightInputs({
             value={totalPoldar}  
             onChange={(e) => setTotalPoldar(e.target.value)}  
           />  
-        </FormControl>  
+        </FormControl> 
       </SimpleGrid>  
     </Box>  
   );  

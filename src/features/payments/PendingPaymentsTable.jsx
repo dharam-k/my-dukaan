@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import {  
   Table, Thead, Tbody, Tr, Th, Td, Box, Text, Badge, Button, HStack, Input, Select  
 } from "@chakra-ui/react";  
-import OrderDetail from "../orders/OrderDetail";  
+import PaymentDetail from "./PaymentDetail";
 
 const PAGE_SIZE = 5;  
 
@@ -103,7 +103,7 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
       ) : (  
         <>  
           <Text fontSize="xl" mb={4} fontWeight="bold" color="green.600">  
-            Pending Payments  
+            Total Payments  
           </Text>  
 
           <HStack spacing={4} mb={4} flexWrap="wrap">  
@@ -196,7 +196,7 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
           </HStack>  
 
           {selectedOrder && (  
-            <OrderDetail  
+            <PaymentDetail  
               isOpen={isModalOpen}  
               onClose={closeModal}  
               orderSummary={selectedOrder}  
