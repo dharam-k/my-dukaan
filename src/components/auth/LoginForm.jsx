@@ -40,14 +40,16 @@ export default function LoginForm() {
 
     // Simulate API delay  
     setTimeout(() => {  
-      const users = JSON.parse(localStorage.getItem("dummyUsers")) || [];  
+      const users = JSON.parse(localStorage.getItem("users")) || [];  
       const userFound = users.find(  
         (user) =>  
-          (user.mobileOrEmail === mobileOrEmail || user.mobileOrEmail === mobileOrEmail.toLowerCase()) &&  
+          (user.phone === mobileOrEmail) &&  
           user.password === password  
       );  
 
-      if (userFound) {  
+      console.log(userFound)
+
+      if (userFound && userFound.isActive && userFound.loginActive) {  
         setLoading(false);  
         toast({  
           position: "top",  
@@ -58,8 +60,13 @@ export default function LoginForm() {
           isClosable: true,  
         });  
 
+        // Save logged-in user details
+        localStorage.setItem("loggedInUser", JSON.stringify(userFound));
+
         setTimeout(() => {  
-          window.location.href = "/dashboard";  
+          if(userFound.userType ==='seller') window.location.href = "/seller-dashboard";
+          if(userFound.userType ==='buyer') window.location.href = "/buyer-dashboard";
+            
         }, 1200);  
       } else {  
         setLoading(false);  

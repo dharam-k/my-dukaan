@@ -10,31 +10,32 @@ import {
   useToast,  
 } from "@chakra-ui/react";  
 import AddSeller from "./AddSeller";
- 
-
-const LOCAL_STORAGE_SELLERS = "dharmkata_sellers";  
 
 export default function SellerSelector({ selectedSeller, setSelectedSeller }) {  
   const [sellers, setSellers] = useState([]);  
   const [searchTerm, setSearchTerm] = useState("");  
   const [filteredSellers, setFilteredSellers] = useState([]);  
   const [creatingSeller, setCreatingSeller] = useState(false);  
-  const [newSeller, setNewSeller] = useState({ name: "", address: "", phone: "" });  
+  const [newSeller, setNewSeller] = useState({  
+    id: "",  
+    name: "",  
+    address: "",  
+    phone: "",  
+    password: "1234",  
+    userType: "seller",  
+    isActive: true,  
+    loginActive: false,  
+    createdAt: new Date().toISOString(),  
+  });  
+
   const toast = useToast();  
 
   useEffect(() => {  
-    const stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_SELLERS));  
+    const stored = JSON.parse(localStorage.getItem("users"));  
     if (stored?.length) {  
-      setSellers(stored);  
-      setFilteredSellers(stored);  
-    } else {  
-      const dummy = [  
-        { name: "Seller One", address: "Addr 1", phone: "111-1111" },  
-        { name: "Seller Two", address: "Addr 2", phone: "222-2222" },  
-      ];  
-      setSellers(dummy);  
-      setFilteredSellers(dummy);  
-      localStorage.setItem(LOCAL_STORAGE_SELLERS, JSON.stringify(dummy));  
+      const filteredSellers = stored.filter((u) => u.userType === "seller");  
+      setSellers(filteredSellers);  
+      setFilteredSellers(filteredSellers);  
     }  
   }, []);  
 
@@ -70,18 +71,39 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
       });  
       return;  
     }  
-    const updatedSellers = [...sellers, newSeller];  
+
+    const allUsers = JSON.parse(localStorage.getItem("users")) || [];  
+    const sellerWithId = {  
+      ...newSeller,  
+      id: `seller-${Date.now()}`,  
+    };  
+    const updatedUsers = [...allUsers, sellerWithId];  
+    const updatedSellers = updatedUsers.filter((u) => u.userType === "seller");  
+
+    localStorage.setItem("users", JSON.stringify(updatedUsers));  
     setSellers(updatedSellers);  
-    localStorage.setItem(LOCAL_STORAGE_SELLERS, JSON.stringify(updatedSellers));  
+    setFilteredSellers(updatedSellers);  
+
     toast({  
       title: "Seller created",  
       status: "success",  
       duration: 2000,  
       isClosable: true,  
     });  
-    setSelectedSeller(newSeller);  
+
+    setSelectedSeller(sellerWithId);  
     setCreatingSeller(false);  
-    setNewSeller({ name: "", address: "", phone: "" });  
+    setNewSeller({  
+      id: "",  
+      name: "",  
+      address: "",  
+      phone: "",  
+      password: "",  
+      userType: "seller",  
+      isActive: true,  
+      loginActive: false,  
+      createdAt: new Date().toISOString(),  
+    });  
     setSearchTerm("");  
   };  
 
@@ -112,7 +134,7 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
                 colorScheme="blue"  
                 key={i}  
                 size="sm"  
-                justifyContent="flex-start"
+                justifyContent="flex-start"  
                 p={3}  
                 onClick={() => handleSelectSeller(seller)}  
               >  
@@ -126,11 +148,10 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
           )}  
           <Button  
             size="sm"  
-            mt={2} 
-            p={3} 
+            mt={2}  
+            p={3}  
             colorScheme="green"  
             onClick={handleCreateSellerToggle}  
-            isFullWidth  
           >  
             Create New Seller  
           </Button>  
@@ -141,10 +162,9 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
         <Button  
           size="sm"  
           mt={2}  
-          p={5}
+          p={5}  
           colorScheme="green"  
           onClick={handleCreateSellerToggle}  
-          isFullWidth  
         >  
           Create New Seller  
         </Button>  

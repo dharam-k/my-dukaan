@@ -24,15 +24,25 @@ import {
   FaCalculator,  
 } from "react-icons/fa";  
 import { calculationIconsMap, inputIconsMap, inputUnitsMap } from "../../utils/constants";
+import getUserById from "../../services/users/getUser";
+import { calculateOrderValues } from "../../utils/calculations";
 
 
-export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSummary  }) {  
+export default function OrderDetail({ isOpen, onClose, orderSummary, paymentSummary  }) {  
   const cancelRef = useRef();  
+
+  const buyer = getUserById(orderSummary?.buyerId);
+  const seller = getUserById(orderSummary?.sellerId);
+  const calculations = calculateOrderValues(orderSummary?.inputs)
+
+  console.log(paymentSummary)
+  paymentSummary = paymentSummary[paymentSummary.length - 1];
+  console.log(paymentSummary)
 
   // Optional: Calculate due amount safely  
   const dueAmount =  
-    paymentSummary && paymentSummary.finalPrice != null && paymentSummary.paymentAmount != null  
-      ? paymentSummary.finalPrice - paymentSummary.paymentAmount  
+    paymentSummary && paymentSummary.finalPrice != null && paymentSummary.paidAmount != null  
+      ? paymentSummary.finalPrice - paymentSummary.paidAmount  
       : 0;  
 
   function handleClose() {  
@@ -83,12 +93,12 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
                       Buyer  
                     </Text>  
                   </HStack>  
-                  <Text ml={8}>{orderSummary.buyer.name}</Text>  
+                  <Text ml={8}>{buyer.name}</Text>  
                   <Text ml={8} fontSize="sm" color="gray.600">  
-                    {orderSummary.buyer.address}  
+                    {buyer.address}  
                   </Text>  
                   <Text ml={8} fontSize="sm" color="gray.600">  
-                    {orderSummary.buyer.phone}  
+                    {buyer.phone}  
                   </Text>  
                 </Box>  
 
@@ -100,14 +110,13 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
                     </Text>  
                   </HStack>  
                   <Text ml={8}>  
-                    {orderSummary.seller.name ||  
-                      JSON.stringify(orderSummary.seller)}  
+                    {seller.name }  
                   </Text>  
                   <Text ml={8} fontSize="sm" color="gray.600">  
-                    {orderSummary.seller.address}  
+                    {seller.address}  
                   </Text>  
                   <Text ml={8} fontSize="sm" color="gray.600">  
-                    {orderSummary.seller.phone}  
+                    {seller.phone}  
                   </Text>  
                 </Box>  
 
@@ -119,8 +128,8 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
                     </Text>  
                   </HStack>  
                   <Text ml={8}>  
-                    {orderSummary.date  
-                      ? new Date(orderSummary.date).toLocaleDateString(  
+                    {orderSummary.created_at  
+                      ? new Date(orderSummary.created_at).toLocaleDateString(  
                           undefined,  
                           {  
                             year: "numeric",  
@@ -131,9 +140,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
                       : "N/A"}  
                   </Text>  
                 </Box>  
-              </SimpleGrid>  
-
-              <Divider />  
+              </SimpleGrid> 
 
               {/* Inputs Section */}  
               <Box>  
@@ -199,7 +206,7 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
                     "totalPolidari",  
                     "finalPrice",  
                   ].map((key) => {  
-                    const val = orderSummary.calculations[key];  
+                    const val = calculations[key];  
                     if (val == null) return null;  
 
                     const IconComp = calculationIconsMap[key] || FaCalculator;  
@@ -286,14 +293,15 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
                         <Text fontWeight="semibold" minW="140px">  
                           Total Amount:  
                         </Text>  
-                        <Text>₹{paymentSummary.finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>  
+                        <Text>₹{paymentSummary?.finalPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>  
                       </HStack>  
-                      <HStack>  
+                      {paymentSummary.dueAmount > 0 ? (<HStack>  
                         <Text fontWeight="semibold" minW="140px">  
                           Paid Amount:  
                         </Text>  
-                        <Text>₹{paymentSummary.paymentAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>  
-                      </HStack>  
+                        <Text>₹{paymentSummary?.paidAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>  
+                      </HStack> ) : ""}
+                       
                       <HStack border={"2px solid"}  
                         borderColor={"red.600"}  
                         borderRadius={"md"}
@@ -304,8 +312,8 @@ export default function OrderDetail({ isOpen, onClose, orderSummary,paymentSumma
                         <Text fontWeight="semibold" minW="140px">  
                           Due Amount:  
                         </Text>  
-                        <Text color={dueAmount > 0 ? "red.600" : "green.600"}>  
-                          ₹{dueAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}  
+                        <Text color={paymentSummary.dueAmount > 0 ? "red.600" : "green.600"}>  
+                          ₹{paymentSummary.dueAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}  
                         </Text>  
                       </HStack>  
                       <HStack>  

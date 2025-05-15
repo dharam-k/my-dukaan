@@ -16,17 +16,17 @@ import {
   Divider,    
 } from "@chakra-ui/react";  
 import { StatsGrid } from "../../components/ui/StatsGrid";
-import { RecentOrdersTable } from "../orders/RecentOrdersTable";
 
-import { PendingPaymentsTable } from "../payments/PendingPaymentsTable";
+import { PaymentsTable } from "../payments/PaymentsTable";
 import { OrderOptions } from "../orders/OrderOptions";
 import Navbar from "../../components/layout/Navbar";
 import UserProfileDrawer from "../../components/layout/UserProfileDrawer";
 import Footer from "../../components/layout/Footer";
+import { OrdersTable } from "../orders/OrdersTable";
 
 export default function BuyerDashboard() {  
-  const [recentOrders, setRecentOrders] = useState([]);  
-  const [pendingPayments, setPendingPayments] = useState([]);  
+  const [totalOrders, setTotalOrders] = useState([]);  
+  const [totalPayments, setTotalPayments] = useState([]);  
   const [overviewStats, setOverviewStats] = useState([]);  
   const [orderAnalyticsStats, setOrderAnalyticsStats] = useState([]);  
   const [inventoryStats, setInventoryStats] = useState([]);  
@@ -35,31 +35,31 @@ export default function BuyerDashboard() {
 
   const openUserMenu = () => setIsUserMenuOpen(true);  
   const closeUserMenu = () => setIsUserMenuOpen(false);  
-
+  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser")) || [];
   useEffect(() => { 
     
     try {  
-      // Parse raw data arrays from localStorage  
-      const sellers = JSON.parse(localStorage.getItem("dharmkata_sellers")) || [];  
+      const totalUser = JSON.parse(localStorage.getItem("users")) || []
+      const totalSellersList = totalUser.filter((u)=> u.userType === 'seller');
       const orders = JSON.parse(localStorage.getItem("orders")) || [];  
       const payments = JSON.parse(localStorage.getItem("payments")) || [];  
 
       // --- Overview Stats ---  
       const totalOrders = orders.length;  
-      const totalSellers = sellers.length;  
-      const pendingPaymentsCount = payments.filter(p => p.paymentStatus == "PENDING").length;  
+      const totalSellers = totalSellersList.length;  
+      const totalPaymentsCount = payments.filter(p => p.paymentStatus == "Pending").length;  
 
       const overview = [  
         { label: "Total Orders", value: totalOrders },  
         { label: "Total Sellers", value: totalSellers },  
-        { label: "Pending Payments", value: pendingPaymentsCount, isCurrency: true },  
+        { label: "Pending Payments", value: totalPaymentsCount, isCurrency: true },  
       ];  
       setOverviewStats(overview);  
 
       // --- Order Analytics ---  
       // Orders with completed payment or not (for example)  
       const completedPaymentsOrderIds = new Set(  
-        payments.filter(p => p.paymentStatus === "COMPLETED").map(p => p.orderId)  
+        payments.filter(p => p.paymentStatus === "Completed").map(p => p.orderId)  
       );  
       const completedOrdersCount = orders.filter(o => completedPaymentsOrderIds.has(o.orderId)).length;  
       const pendingOrdersCount = totalOrders - completedOrdersCount;  
@@ -78,7 +78,8 @@ export default function BuyerDashboard() {
         (acc, o) => acc + (Number(o.inputs?.totalItem) || 0),  
         0  
       ); 
-            // Total items sum up  
+      
+      // Total items sum up  
       const totalItemsWeight = orders.reduce(  
         (acc, o) => acc + (Number(o.inputs?.totalWeight) || 0),  
         0  
@@ -106,9 +107,9 @@ export default function BuyerDashboard() {
     const storedOrders = localStorage.getItem("orders");  
     if (storedOrders) {  
       try {  
-        setRecentOrders(JSON.parse(storedOrders));  
+        setTotalOrders(JSON.parse(storedOrders));  
       } catch (e) {  
-        console.error("Failed to parse recentOrders from localStorage", e);  
+        console.error("Failed to parse totalOrders from localStorage", e);  
       }  
     }  
 
@@ -120,18 +121,13 @@ export default function BuyerDashboard() {
         // const pending = allPayments.filter(  
         //   (p) => p.paymentStatus === "PENDING"  
         // );  
-        setPendingPayments(allPayments);  
+        setTotalPayments(allPayments);  
       } catch (e) {  
         console.error("Failed to parse payments from localStorage", e);  
       }  
     }  
   }, []);  
 
-
-
-  const handleViewOrder = (orderId) => {  
-    alert(`View details for Order ID: ${orderId} (to be implemented)`);  
-  };  
 
   const handleStatClick = (label) => {  
     alert(`View details for: ${label}`);  
@@ -145,7 +141,7 @@ export default function BuyerDashboard() {
         <UserProfileDrawer  
           isOpen={isUserMenuOpen}  
           onClose={closeUserMenu}  
-          userName="Jai Hanuman Traders" // Pass real user name dynamically here  
+          userName={loggedInUser.name} // Pass real user name dynamically here  
         /> 
 
       {/* New Order Button */}  
@@ -215,9 +211,9 @@ export default function BuyerDashboard() {
     </Tabs>  
 
       {/* Recent Orders Table */}  
-      <RecentOrdersTable orders={recentOrders} onViewOrder={handleViewOrder} />  
+      <OrdersTable orders={totalOrders} />  
       {/* Pending Payments Table */}  
-      <PendingPaymentsTable orders={recentOrders} payments={pendingPayments} /> 
+      <PaymentsTable orders={totalOrders} payments={totalPayments} /> 
   
         {/* Footer */}  
         <Footer />  

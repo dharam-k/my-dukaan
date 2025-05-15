@@ -1,33 +1,23 @@
-import './App.css'
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";  
-import BuyerDashboard from './features/dashboard/BuyerDashboard';
-import LoginForm from './components/auth/LoginForm';
-import CreateOrder from './features/orders/CreateOrder';
+import './App.css';
+import { BrowserRouter as Router } from "react-router-dom";  
+import { users } from './utils/constants';
+import AppRoutes from './routes/AppRoutes';
 
 function App() {
 
-  const seedDummyUsers = () => {  
-    if (!localStorage.getItem("dummyUsers")) {  
-      const dummyUsers = [  
-        { mobileOrEmail: "user1@example.com", password: "password1" },  
-        { mobileOrEmail: "user2@example.com", password: "password2" },  
-        { mobileOrEmail: "1234567890", password: "pass1234" },  
-      ];  
-      localStorage.setItem("dummyUsers", JSON.stringify(dummyUsers));  
-    }  
-  };  
+  const seedDummyUsers = () => {
+    if (!localStorage.getItem("users")) {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+  };
+
   seedDummyUsers();
 
   return (
-    <Router>  
-      <Routes>  
-        <Route path="/login" element={<LoginForm />} />  
-        <Route path="/dashboard" element={<BuyerDashboard />} />  
-        <Route path="*" element={<Navigate to="/login" replace />} />  
-        <Route path="/create-order" element={<CreateOrder />} />
-      </Routes>  
-    </Router>  
-  )
+    <Router>
+        <AppRoutes/>
+    </Router>
+  );
 }
 
-export default App
+export default App;

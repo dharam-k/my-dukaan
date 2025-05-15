@@ -3,10 +3,11 @@ import {
   Table, Thead, Tbody, Tr, Th, Td, Box, Text, Badge, Button, HStack, Input, Select  
 } from "@chakra-ui/react";  
 import PaymentDetail from "./PaymentDetail";
+import getUserById from "../../services/users/getUser";
 
 const PAGE_SIZE = 5;  
 
-export function PendingPaymentsTable({ payments = [], orders = [] }) {   
+export function PaymentsTable({ payments = [], orders = [] }) {   
   // All hooks first, no conditional returns before these  
   const [currentPage, setCurrentPage] = useState(1);  
   const [selectedOrder, setSelectedOrder] = useState(null);  
@@ -20,15 +21,23 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
   // Use safe default arrays to avoid undefined errors  
   const safePayments = payments || [];  
   const safeOrders = orders || [];  
+  console.log(orders)
+  console.log(payments)
 
   // Prepare filtered payments based on search and filterPaymentStatus  
-  const filteredPayments = useMemo(() => {  
-    return safePayments.filter(p => {  
+  const filteredPayments = useMemo(() => { 
+      // Sort payments by createdAt descending (newest first)  
+    const sortedPayments = [...safePayments].sort((a, b) => {  
+      const dateA = new Date(a.createdAt);  
+      const dateB = new Date(b.createdAt);  
+      return dateB - dateA; // descending order  
+    });   
+    return sortedPayments.filter(p => {  
       if (searchTerm) {  
         const lowerSearch = searchTerm.toLowerCase();  
         const matchesOrderId = p.orderId.toLowerCase().includes(lowerSearch);  
-        const matchesSeller = (p.sellerName || "").toLowerCase().includes(lowerSearch);  
-        const matchesBuyer = (p.buyerName || "").toLowerCase().includes(lowerSearch);  
+        const matchesSeller = (getUserById(p.sellerId).name || "").toLowerCase().includes(lowerSearch);  
+        const matchesBuyer = (getUserById(p.buyerId).name || "").toLowerCase().includes(lowerSearch);  
         if (!matchesOrderId && !matchesSeller && !matchesBuyer) return false;  
       }  
       if (filterPaymentStatus && p.paymentStatus !== filterPaymentStatus) return false;  
@@ -47,7 +56,7 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
       if (aVal == null) return 1;  
       if (bVal == null) return -1;  
 
-      if (["finalPrice", "paymentAmount", "dueAmount"].includes(key)) {  
+      if (["finalPrice", "paidAmount", "dueAmount"].includes(key)) {  
         aVal = Number(aVal);  
         bVal = Number(bVal);  
       } else {  
@@ -126,9 +135,9 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
               }}  
               width="180px"  
             >  
-              <option value="PENDING">Pending</option>  
-              <option value="COMPLETED">Completed</option>  
-              <option value="FAILED">Failed</option>  
+              <option value="PENDING">PENDING</option>  
+              <option value="COMPLETED">COMPLETED</option>  
+              <option value="FAILED">FAILED</option>  
             </Select>  
           </HStack>  
 
@@ -142,8 +151,8 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
                 <Th cursor="pointer" onClick={() => toggleSort("finalPrice")}>  
                   Total Amount {sortBy.key === "finalPrice" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
                 </Th>  
-                <Th cursor="pointer" onClick={() => toggleSort("paymentAmount")}>  
-                  Paid Amount {sortBy.key === "paymentAmount" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
+                <Th cursor="pointer" onClick={() => toggleSort("paidAmount")}>  
+                  Paid Amount {sortBy.key === "paidAmount" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
                 </Th>  
                 <Th cursor="pointer" onClick={() => toggleSort("dueAmount")}>  
                   Due Amount {sortBy.key === "dueAmount" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
@@ -160,10 +169,10 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
                 return (  
                   <Tr key={`${p.orderId}-${i}`}>  
                     <Td>{p.orderId}</Td>  
-                    <Td>{p.sellerName || order.seller?.name || "N/A"}</Td>  
-                    <Td>₹{typeof p.finalPrice === "number" ? p.finalPrice.toFixed(2) : "0.00"}</Td>  
-                    <Td>₹{typeof p.paymentAmount === "number" ? p.paymentAmount.toFixed(2) : "0.00"}</Td>  
-                    <Td>₹{typeof p.dueAmount === "number" ? p.dueAmount.toFixed(2) : "0.00"}</Td>  
+                    <Td>{p.sellerName || getUserById(order.sellerId)?.name || "N/A"}</Td>  
+                    <Td>₹{p.finalPrice}</Td>  
+                    <Td>₹{ p.paidAmount}</Td>  
+                    <Td>₹{p.dueAmount}</Td>  
                     <Td>  
                       <Badge  
                         colorScheme={p.paymentStatus === "COMPLETED" ? "green" : "orange"}  
@@ -208,5 +217,3 @@ export function PendingPaymentsTable({ payments = [], orders = [] }) {
     </Box>  
   );  
 }  
-
-export default PendingPaymentsTable;

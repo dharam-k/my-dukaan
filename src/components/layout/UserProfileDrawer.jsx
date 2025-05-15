@@ -30,7 +30,8 @@ import { useNavigate } from "react-router-dom";
 export default function UserProfileDrawer({ isOpen, onClose, userName }) {  
     const navigate = useNavigate()
   function handleLogout(){
-    navigate("/login")
+    localStorage.removeItem("loggedInUser"); // Remove logged-in user info
+    navigate("/login"); // Redirect to login page
   }
   return (  
     <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">  
@@ -55,6 +56,17 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
 
         <DrawerBody display="flex" flexDirection="column" p={4}>  
           <VStack spacing={4} align="stretch" flex="1">  
+
+            <Button  
+              variant="ghost"  
+              justifyContent="flex-start"  
+              leftIcon={<FaEdit />}  
+              size="md"  
+              fontWeight="medium"  
+              onClick={() => navigate("/buyer-dashboard")}  
+            >  
+              Dashboard 
+            </Button> 
 
             <Button  
               variant="ghost"  

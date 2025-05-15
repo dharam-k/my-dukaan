@@ -38,3 +38,42 @@ export const inputIconsMap = {
   quality: FaTag,  
   warehouse: FaWarehouse,  
 };  
+
+
+export const users = [
+        {
+          id: "user_001",
+          name: "Jai Hanuman Traders",
+          address: "Bankata Bazar, UP",
+          phone: "1234567890",
+          password: "1234",
+          userType: "buyer",
+          gstn: "09AABCU9603R1Z1",
+          isActive: true,
+          loginActive: true,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "user_002",
+          name: "Jai Shri Traders",
+          address: "Noida, UP",
+          phone: "07011571659",
+          password: "1234",
+          userType: "seller",
+          isActive: true,
+          loginActive: true,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "user_003",
+          name: "Sample Buyer",
+          address: "Lucknow, UP",
+          phone: "1234567890",
+          password: "1234",
+          userType: "buyer",
+          isActive: false,
+          loginActive: false,
+          gstn: "09AAACU9603R1Z2",
+          createdAt: new Date().toISOString()
+        }
+      ];

@@ -9,12 +9,10 @@ import {
   Button,  
   useDisclosure,
   MenuDivider,
+  useToast,
 } from "@chakra-ui/react";  
 import { FaWeight, FaBoxes, FaUsers, FaRupeeSign, FaMoneyBillWave, FaBalanceScaleRight} from "react-icons/fa";   
 import Navbar from "../../components/layout/Navbar";  
-import SellerSelector from "../sellers/SellerSelector";  
-import SellerCardDetail from "../sellers/SellerCardDetail";  
-import BuyerCardDetail from "../buyers/BuyerCardDetail";  
 import { DatePicker } from "../../components/ui/DatePicker";  
 import RateInput from "./RateInput";  
 import WeightInputs from "./WeightInputs";  
@@ -25,12 +23,9 @@ import Footer from "../../components/layout/Footer";
 import { useNavigate } from "react-router-dom";
 import OrderSummaryModal from "./OrderSummaryModal";
 import UserProfileDrawer from "../../components/layout/UserProfileDrawer";
-
-const defaultBuyer = {  
-  name: "Jai Hanuman Traders",  
-  address: "Bankata Bazar, UP",  
-  phone: "7011571659",  
-};  
+import BuyerCardDetail from "../../users/buyers/BuyerCardDetail";
+import SellerSelector from "../../users/sellers/SellerSelector";
+import SellerCardDetail from "../../users/sellers/SellerCardDetail";
 
 export default function CreateOrder() {  
   const [selectedSeller, setSelectedSeller] = useState(null);  
@@ -70,63 +65,92 @@ export default function CreateOrder() {
   const navigate = useNavigate();  
   const handleClose = () => {  
     onClose();          // Close the modal first  
-    navigate("/dashboard"); // Navigate to dashboard page  
+    navigate("/buyer-dashboard"); // Navigate to dashboard page  
   };  
+
+  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser")) || [];
     // Submit handler  
-  const handleSubmit = () => { 
-    
-    console.log(orderDate)
-    console.log(selectedSeller)
-    if (!selectedSeller || !orderDate) {  
-      alert("Please select a seller and pick a date before submitting.");  
-      return;  
-    }  
+  const toast = useToast();
 
-    // Retrieve existing orders from localStorage  
-    const existingOrders = JSON.parse(localStorage.getItem("orders")) || [];  
+  const handleSubmit = () => {
+    if (!selectedSeller || !orderDate) {
+      toast({
+        title: "Missing seller or date",
+        description: "Please select a seller and pick a date before submitting.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
 
-    // Generate new Order ID with zero padded number (e.g., OD-0003)  
-    const newOrderId = `OD-${String(existingOrders.length + 1).padStart(4, "0")}`;  
+    if (
+      !ratePerQuantal ||
+      !poldariRate ||
+      !dharmKata ||
+      !baadWajan ||
+      !finalWeight ||
+      !totalWeight ||
+      !totalbaadWajan ||
+      !totalItem ||
+      !totalPoldar ||
+      !itemType ||
+      !quality ||
+      !warehouse
+    ) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please fill in all required fields before submitting the order.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
 
-    const order = {  
-      orderId: newOrderId, 
-      buyer: defaultBuyer,  
-      seller: selectedSeller,  
-      date: orderDate,  
-      inputs: {  
-        ratePerQuantal,  
-        poldariRate,  
-        dharmKata, 
-        baadWajan, 
-        totalWeight,
-        totalbaadWajan,
-        finalWeight,
-        totalItem,  
-        totalPoldar,  
-        itemType,  
-        quality,  
-        warehouse,  
-      },  
-      calculations: {  
-        totalPolidari,  
-        perHeadPoldari,  
-        totalPrice,  
-        finalPrice,  
-      },  
-    };  
+    const existingOrders = JSON.parse(localStorage.getItem("orders")) || [];
 
+    const newOrderId = `OD-${String(existingOrders.length + 1).padStart(4, "0")}`;
 
+    const newOrder = {
+      id: `order_${String(existingOrders.length + 1).padStart(4, "0")}`,
+      orderId: newOrderId,
+      buyerId: loggedInUser?.id || "unknown_buyer",
+      sellerId: selectedSeller?.id || "unknown_seller",
+      created_at: new Date().toISOString(),
+      inputs: {
+        ratePerQuantal: parseFloat(ratePerQuantal),
+        poldariRate: parseFloat(poldariRate),
+        dharmKata,
+        baadWajan: parseFloat(baadWajan),
+        totalWeight: parseFloat(totalWeight),
+        totalbaadWajan: parseFloat(totalbaadWajan),
+        finalWeight: parseFloat(finalWeight.toFixed(2)),
+        totalItem,
+        totalPoldar,
+        itemType,
+        quality,
+        warehouse,
+      },
+      paymentIds: [],
+    };
 
-    // Add new order  
-    existingOrders.push(order);  
+    existingOrders.push(newOrder);
+    localStorage.setItem("orders", JSON.stringify(existingOrders));
 
-    // Save back to localStorage  
-    localStorage.setItem("orders", JSON.stringify(existingOrders));  
+    toast({
+      title: "Order Created",
+      description: `Order ${newOrderId} has been created successfully.`,
+      status: "success",
+      duration: 3000,
+      position: "top",
+      isClosable: true,
+    });
 
-    // Show modal with summary  
-    setOrderSummary(order);  
-    onOpen();  
-  };  
+    setOrderSummary(newOrder);
+    onOpen();
+  };
+ 
 
   return (  
      <>  
@@ -136,7 +160,7 @@ export default function CreateOrder() {
         <UserProfileDrawer  
           isOpen={isUserMenuOpen}  
           onClose={closeUserMenu}  
-          userName="John Doe" // Pass real user name dynamically here  
+          userName={loggedInUser?.name} // Pass real user name dynamically here  
         />  
 
         <VStack spacing={6} align="stretch">  
@@ -145,7 +169,7 @@ export default function CreateOrder() {
             <Text fontSize="xl" fontWeight="bold" mb={2}>  
               Buyer Details  
             </Text>  
-            <BuyerCardDetail buyer={defaultBuyer} />  
+            <BuyerCardDetail buyer={loggedInUser} />  
           </Box>  
 
           {/* Seller Selector */}  
