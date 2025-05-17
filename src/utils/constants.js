@@ -77,3 +77,15 @@ export const users = [
           createdAt: new Date().toISOString()
         }
       ];
+
+
+// Hindi dictionary for known English item types
+export const hindiDictionary = {
+  "Mansoori Dhaan": "मंसूरीधान",
+  "Mota Dhaan": "मोटाधान",
+  "Sambha Dhaan": "संभांधान",
+  "Gehu": "गेहूँ",
+  "Makka": "मक्का",
+  "Sarso": "सरसों",
+  "Rice": "चावल",
+};

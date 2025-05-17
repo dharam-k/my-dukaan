@@ -1,60 +1,60 @@
-import React from "react";  
-import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";  
-import CreatableSelect from "react-select/creatable";  
-import { FaTag } from "react-icons/fa";  
+import React, { useState, useEffect } from "react";
+import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";
+import Select from "react-select"; // <- change here from creatable to regular Select
+import { FaTag } from "react-icons/fa";
+import { hindiDictionary } from "../../utils/constants";
 
-const options = [  
-  { eng: "Mansoori Dhaan", hin: "मंसूरीधान" },  
-  { eng: "Mota Dhaan", hin: "मोटाधान" },  
-  { eng: "Sambha Dhaan", hin: "संभांधान" },  
-  { eng: "Gehu", hin: "गेहूँ" },  
-  { eng: "Makka", hin: "मक्का" },  
-  { eng: "Sarso", hin: "सरसों" },  
-  { eng: "Rice", hin: "चावल" },  
-];  
+export default function ItemType({ itemType, setItemType }) {
+  const [options, setOptions] = useState([]);
 
-const SELECT_OPTIONS = options.map(({ eng, hin }) => ({ label: hin, value: hin })); 
+  useEffect(() => {
+    const storedItemTypes = JSON.parse(localStorage.getItem("itemTypes") || "[]");
+    if (Array.isArray(storedItemTypes) && storedItemTypes.length > 0) {
+      const mappedOptions = storedItemTypes.map((eng) => ({
+        eng,
+        hin: hindiDictionary[eng] || eng, // fallback to English if Hindi not found
+      }));
+      setOptions(mappedOptions);
+    } else {
+      setOptions([]);
+    }
+  }, []);
 
-export default function ItemType({  
-  itemType,  
-  setItemType,   
-}) {  
+  const selectedItem = itemType
+    ? (() => {
+        const found = options.find(({ eng }) => eng === itemType);
+        return found ? { label: found.hin, value: found.hin } : { label: itemType, value: itemType };
+      })()
+    : null;
 
- // Show Hindi label and value for selected English itemType  
-  const selectedItem = itemType  
-    ? (() => {  
-        const found = options.find(({ eng }) => eng === itemType);  
-        return found ? { label: found.hin, value: found.hin } : { label: itemType, value: itemType };  
-      })()  
-    : null;  
+  const handleItemTypeChange = (selectedOption) => {
+    if (selectedOption) {
+      const found = options.find(({ hin }) => hin === selectedOption.value);
+      setItemType(found ? found.eng : selectedOption.value);
+    } else {
+      setItemType("");
+    }
+  };
 
-  const handleItemTypeChange = (selectedOption) => {  
-    if (selectedOption) {  
-      const found = options.find(({ hin }) => hin === selectedOption.value);  
-      setItemType(found ? found.eng : selectedOption.value); // store English internally  
-    } else {  
-      setItemType("");  
-    }  
-  };  
-
-  return (  
-    <Box mt={4}>  
-      <FormControl mb={4}>  
-        <FormLabel>  
-          <HStack spacing={2}>  
-            <Box color="cyan.600"><FaTag /></Box>  
-            <Box>वस्तु का प्रकार</Box>  
-          </HStack>  
-        </FormLabel>  
-        <CreatableSelect  
-          isClearable  
-          options={SELECT_OPTIONS}  
-          onChange={handleItemTypeChange}  
-          value={selectedItem}  
-          placeholder="वस्तु का प्रकार चुनें या बनाएँ..."  
-          formatCreateLabel={(inputValue) => `Create: "${inputValue}"`}  
-        />  
-      </FormControl>  
-    </Box>  
-  );  
+  return (
+    <Box mt={4}>
+      <FormControl mb={4}>
+        <FormLabel>
+          <HStack spacing={2}>
+            <Box color="cyan.600">
+              <FaTag />
+            </Box>
+            <Box>वस्तु का प्रकार</Box>
+          </HStack>
+        </FormLabel>
+        <Select
+          isClearable
+          options={options.map(({ hin }) => ({ label: hin, value: hin }))}
+          onChange={handleItemTypeChange}
+          value={selectedItem}
+          placeholder="वस्तु का प्रकार चुनें..."
+        />
+      </FormControl>
+    </Box>
+  );
 }

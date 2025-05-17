@@ -5,6 +5,7 @@ import BuyerDashboard from '../features/dashboard/BuyerDashboard'
 import CreateOrder from '../features/orders/CreateOrder'
 import RequireAuth from '../features/auth/RequireAuth';
 import SellerDashboard from '../features/dashboard/SellerDashboard';
+import TruckLoadingForm from '../features/truck-loading/TruckLoadingForm';
 
 function AppRoutes() {
   return (
@@ -35,6 +36,16 @@ function AppRoutes() {
         element={
           <RequireAuth allowedUserTypes={["buyer"]}>
             <CreateOrder />
+          </RequireAuth>
+        }
+      />
+
+      {/* Authenticated route only for buyers */}
+      <Route
+        path="/truck-load"
+        element={
+          <RequireAuth allowedUserTypes={["buyer"]}>
+            <TruckLoadingForm />
           </RequireAuth>
         }
       />

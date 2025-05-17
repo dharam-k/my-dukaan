@@ -31,10 +31,14 @@ export default function BuyerDashboard() {
   const [orderAnalyticsStats, setOrderAnalyticsStats] = useState([]);  
   const [inventoryStats, setInventoryStats] = useState([]);  
   const [sellersMillsStats, setSellersMillsStats] = useState([]);  
-    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
+
 
   const openUserMenu = () => setIsUserMenuOpen(true);  
-  const closeUserMenu = () => setIsUserMenuOpen(false);  
+  const closeUserMenu = () => setIsUserMenuOpen(false); 
+
+
+
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser")) || [];
   useEffect(() => { 
     
@@ -141,8 +145,10 @@ export default function BuyerDashboard() {
         <UserProfileDrawer  
           isOpen={isUserMenuOpen}  
           onClose={closeUserMenu}  
-          userName={loggedInUser.name} // Pass real user name dynamically here  
+          userName={loggedInUser.name} 
         /> 
+
+
 
       {/* New Order Button */}  
       <Center minH="200px" minWidth={{base: 300, md: 600}}  px={4}>  
@@ -214,7 +220,6 @@ export default function BuyerDashboard() {
       <OrdersTable orders={totalOrders} />  
       {/* Pending Payments Table */}  
       <PaymentsTable orders={totalOrders} payments={totalPayments} /> 
-  
         {/* Footer */}  
         <Footer />  
     </Box>  

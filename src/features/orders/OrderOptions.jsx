@@ -8,7 +8,7 @@ export function OrderOptions() {
     // alert("Selected option : "+option); 
     if(option == "DharmKata")  navigate("/create-order");
     if(option == "Bora")  alert("comming soon..");
-    if(option == "truck-load") alert("comming soon..");
+    if(option == "truck-load") navigate("/truck-load");
   };  
 
   return (  
