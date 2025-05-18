@@ -15,11 +15,14 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
+import { addMill } from "../../services/mills/MillService";  // adjust path if needed
+
 export default function MillProfileFormModal({ isOpen, onClose }) {
   const [millName, setMillName] = useState("");
   const [address, setAddress] = useState("");
   const [mobile, setMobile] = useState("");
   const [gstn, setGstn] = useState("");
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -31,37 +34,48 @@ export default function MillProfileFormModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!millName.trim() || !address.trim() || !mobile.trim()) {
       toast({
         title: "Please fill all required fields",
         status: "error",
         duration: 2000,
-        position:"top-right",
+        position: "top-right",
         isClosable: true,
       });
       return;
     }
 
-    const mills = JSON.parse(localStorage.getItem("mills")) || [];
-    mills.push({
-      id: Date.now(),
-      millName: millName.trim(),
-      address: address.trim(),
-      mobile: mobile.trim(),
-      gstn: gstn.trim() || null,
-    });
-    localStorage.setItem("mills", JSON.stringify(mills));
+    setLoading(true);
+    try {
+      await addMill({
+        millName: millName.trim(),
+        address: address.trim(),
+        mobile: mobile.trim(),
+        gstn: gstn.trim() || null,
+      });
 
-    toast({
-      title: "Mill profile saved!",
-      status: "success",
-      duration: 2000,
-      position:"top-right",
-      isClosable: true,
-    });
+      toast({
+        title: "Mill profile saved!",
+        status: "success",
+        duration: 2000,
+        position: "top-right",
+        isClosable: true,
+      });
 
-    onClose();
+      onClose();
+    } catch (error) {
+      console.error("Failed to save mill", error);
+      toast({
+        title: "Failed to save mill. Please try again.",
+        status: "error",
+        duration: 3000,
+        position: "top-right",
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +92,7 @@ export default function MillProfileFormModal({ isOpen, onClose }) {
                 value={millName}
                 onChange={(e) => setMillName(e.target.value)}
                 placeholder="Mill Name"
+                isDisabled={loading}
               />
             </FormControl>
 
@@ -87,6 +102,7 @@ export default function MillProfileFormModal({ isOpen, onClose }) {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Address"
+                isDisabled={loading}
               />
             </FormControl>
 
@@ -97,6 +113,7 @@ export default function MillProfileFormModal({ isOpen, onClose }) {
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
                 placeholder="Mobile Number"
+                isDisabled={loading}
               />
             </FormControl>
 
@@ -106,16 +123,23 @@ export default function MillProfileFormModal({ isOpen, onClose }) {
                 value={gstn}
                 onChange={(e) => setGstn(e.target.value)}
                 placeholder="GSTN"
+                isDisabled={loading}
               />
             </FormControl>
           </VStack>
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="green" mr={3} onClick={handleSubmit}>
+          <Button
+            colorScheme="green"
+            mr={3}
+            onClick={handleSubmit}
+            isLoading={loading}
+            loadingText="Saving"
+          >
             Save
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} isDisabled={loading}>
             Cancel
           </Button>
         </ModalFooter>

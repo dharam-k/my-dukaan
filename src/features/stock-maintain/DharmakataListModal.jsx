@@ -19,45 +19,117 @@ import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 
 import DharmakataAddEditModal from "./DharmakataAddEditModal";
 
+import {
+  fetchDharmakatas,
+  addDharmakata,
+  updateDharmakata,
+  deleteDharmakata,
+} from "../../services/stock-maitain/DharmakataService";
+
 export default function DharmakataListModal({ isOpen, onClose }) {
   const [dharmakataList, setDharmakataList] = useState([]);
   const [addEditModalOpen, setAddEditModalOpen] = useState(false);
-  const [editItem, setEditItem] = useState(null);
+  const [editIndex, setEditIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
-    if (isOpen) {
-      const saved = JSON.parse(localStorage.getItem("dharmakatas") || "[]");
-      setDharmakataList(saved);
-    }
+    if (isOpen) loadDharmakatas();
   }, [isOpen]);
 
-  const saveList = (list) => {
-    setDharmakataList(list);
-    localStorage.setItem("dharmakatas", JSON.stringify(list));
-  };
+  async function loadDharmakatas() {
+    setLoading(true);
+    try {
+      const dharmakatas = await fetchDharmakatas();
+      setDharmakataList(dharmakatas);
+    } catch (error) {
+      console.error("Failed to load dharmakatas:", error);
+      toast({
+        title: "Failed to load dharmakatas",
+        status: "error",
+        duration: 3000,
+      });
+      setDharmakataList([]);
+    }
+    setLoading(false);
+  }
 
-  const handleDelete = (index) => {
-    const confirmed = window.confirm("Are you sure you want to delete this dharmakata?");
+  const handleDelete = async (index) => {
+    const dharmakata = dharmakataList[index];
+    const confirmed = window.confirm(`Are you sure you want to delete "${dharmakata.name}"?`);
     if (!confirmed) return;
-    const newList = [...dharmakataList];
-    newList.splice(index, 1);
-    saveList(newList);
-    toast({ title: "Deleted successfully", status: "success", duration: 2000 });
+
+    try {
+      await deleteDharmakata(dharmakata.id);
+      const newList = dharmakataList.filter((_, i) => i !== index);
+      setDharmakataList(newList);
+      toast({
+        title: "Deleted successfully",
+        status: "success",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast({
+        title: "Delete failed",
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
-  const handleAddEdit = (value) => {
-    if (editItem !== null) {
-      const newList = [...dharmakataList];
-      newList[editItem] = value;
-      saveList(newList);
-      toast({ title: "Updated successfully", status: "success", duration: 2000 });
+  const handleAddEdit = async (value) => {
+    if (!value || value.trim() === "") {
+      toast({
+        title: "Name cannot be empty",
+        status: "warning",
+        duration: 2000,
+      });
+      return;
+    }
+
+    if (editIndex !== null) {
+      // Edit mode
+      const itemToUpdate = dharmakataList[editIndex];
+      try {
+        await updateDharmakata(itemToUpdate.id, { name: value });
+        const newList = [...dharmakataList];
+        newList[editIndex] = { ...itemToUpdate, name: value };
+        setDharmakataList(newList);
+        toast({
+          title: "Updated successfully",
+          status: "success",
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error("Update failed:", error);
+        toast({
+          title: "Update failed",
+          status: "error",
+          duration: 3000,
+        });
+      }
     } else {
-      saveList([...dharmakataList, value]);
-      toast({ title: "Added successfully", status: "success", duration: 2000 });
+      // Add mode
+      try {
+        const newItem = await addDharmakata({ name: value });
+        setDharmakataList([...dharmakataList, newItem]);
+        toast({
+          title: "Added successfully",
+          status: "success",
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error("Add failed:", error);
+        toast({
+          title: "Add failed",
+          status: "error",
+          duration: 3000,
+        });
+      }
     }
     setAddEditModalOpen(false);
-    setEditItem(null);
+    setEditIndex(null);
   };
 
   return (
@@ -65,18 +137,18 @@ export default function DharmakataListModal({ isOpen, onClose }) {
       <Modal isOpen={isOpen} onClose={onClose} size="md" scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>
-            Dharmakatas (Total: {dharmakataList.length})
-          </ModalHeader>
+          <ModalHeader>Dharmakatas (Total: {dharmakataList.length})</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {dharmakataList.length === 0 ? (
+            {loading ? (
+              <Text>Loading...</Text>
+            ) : dharmakataList.length === 0 ? (
               <Text>No dharmakatas available.</Text>
             ) : (
               <VStack align="start" spacing={2}>
                 {dharmakataList.map((item, i) => (
                   <Box
-                    key={i}
+                    key={item.id}
                     p={2}
                     borderWidth="1px"
                     borderRadius="md"
@@ -85,14 +157,14 @@ export default function DharmakataListModal({ isOpen, onClose }) {
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <Text>{item}</Text>
+                    <Text>{item.name}</Text>
                     <HStack spacing={1}>
                       <IconButton
                         icon={<FaEdit />}
                         aria-label="Edit"
                         size="sm"
                         onClick={() => {
-                          setEditItem(i);
+                          setEditIndex(i);
                           setAddEditModalOpen(true);
                         }}
                       />
@@ -114,7 +186,7 @@ export default function DharmakataListModal({ isOpen, onClose }) {
               leftIcon={<FaPlus />}
               colorScheme="green"
               onClick={() => {
-                setEditItem(null);
+                setEditIndex(null);
                 setAddEditModalOpen(true);
               }}
             >
@@ -127,15 +199,14 @@ export default function DharmakataListModal({ isOpen, onClose }) {
         </ModalContent>
       </Modal>
 
-      {/* Add/Edit Modal */}
       <DharmakataAddEditModal
         isOpen={addEditModalOpen}
         onClose={() => {
           setAddEditModalOpen(false);
-          setEditItem(null);
+          setEditIndex(null);
         }}
         onSave={handleAddEdit}
-        initialValue={editItem !== null ? dharmakataList[editItem] : ""}
+        initialValue={editIndex !== null ? dharmakataList[editIndex].name : ""}
       />
     </>
   );

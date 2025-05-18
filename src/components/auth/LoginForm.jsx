@@ -1,117 +1,67 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Input,
-  FormControl,
-  FormLabel,
-  Heading,
-  Text,
-  VStack,
-  useToast,
-  Icon,
-  Spinner,
-} from "@chakra-ui/react";
+import { useToast, Spinner, Icon, Box, Button, FormControl, FormLabel, Heading, Input, Text, VStack } from "@chakra-ui/react";
 import { MdLogin } from "react-icons/md";
-// import { erpnextLogin } from "../../services/erpnextApi";
+import { loginUser } from "../../firebase/authService";
 
 export default function LoginForm() {
-  const [mobileOrEmail, setMobileOrEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  const handleSubmit = (e) => {  
-    e.preventDefault();  
-    setLoading(true);  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-    if (!mobileOrEmail || !password) {  
-      setLoading(false);  
-      toast({  
-        position: "top",  
-        title: "Login failed",  
-        description: "Please fill in all fields.",  
-        status: "error",  
-        duration: 2000,  
-        isClosable: true,  
-      });  
-      return;  
-    }  
+    if (!email || !password) {
+      setLoading(false);
+      toast({
+        title: "Login failed",
+        description: "Please fill in all fields",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
 
-    // Simulate API delay  
-    setTimeout(() => {  
-      const users = JSON.parse(localStorage.getItem("users")) || [];  
-      const userFound = users.find(  
-        (user) =>  
-          (user.phone === mobileOrEmail) &&  
-          user.password === password  
-      );  
+    try {
+      const user = await loginUser(email, password);
+      setLoading(false);
+      toast({
+        title: "Login successful",
+        status: "success",
+        duration: 1500,
+        isClosable: true,
+      });
 
-      console.log(userFound)
-
-      if (userFound && userFound.isActive && userFound.loginActive) {  
-        setLoading(false);  
-        toast({  
-          position: "top",  
-          title: "Login successful",  
-          description: "Welcome back!",  
-          status: "success",  
-          duration: 1500,  
-          isClosable: true,  
-        });  
-
-        // Save logged-in user details
-        localStorage.setItem("loggedInUser", JSON.stringify(userFound));
-
-        setTimeout(() => {  
-          if(userFound.userType ==='seller') window.location.href = "/seller-dashboard";
-          if(userFound.userType ==='buyer') window.location.href = "/buyer-dashboard";
-            
-        }, 1200);  
-      } else {  
-        setLoading(false);  
-        toast({  
-          position: "top",  
-          title: "Login failed",  
-          description: "Incorrect username or password",  
-          status: "error",  
-          duration: 2500,  
-          isClosable: true,  
-        });  
-      }  
-    }, 800);  
+      setTimeout(() => {
+        if (user.userType === "seller") {
+          window.location.href = "/seller-dashboard";
+        } else if (user.userType === "buyer") {
+          window.location.href = "/buyer-dashboard";
+        }
+      }, 1000);
+    } catch (error) {
+      setLoading(false);
+      toast({
+        title: "Login failed",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
-    <Box
-      minH="100vh"
-      bgGradient="linear(to-br, green.100, white, green.50)"
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      px={4}
-    >
-      <Box
-        bg="white"
-        p={8}
-        rounded="2xl"
-        shadow="lg"
-        w="full"
-        maxW="sm"
-        as="form"
-        onSubmit={handleSubmit}
-      >
+    <Box minH="100vh" bgGradient="linear(to-br, green.100, white, green.50)" display="flex" alignItems="center" justifyContent="center" px={4}>
+      <Box bg="white" p={8} rounded="2xl" shadow="lg" w="full" maxW="sm" as="form" onSubmit={handleSubmit}>
         <VStack spacing={5}>
           <Box bg="green.400" p={2.5} rounded="full" mb={1}>
             <Icon as={MdLogin} color="white" boxSize={8} />
           </Box>
-          <Heading
-            as="h1"
-            size="lg"
-            color="green.700"
-            textAlign="center"
-            lineHeight="short"
-          >
+          <Heading as="h1" size="lg" color="green.700" textAlign="center" lineHeight="short">
             Welcome to Agri Shop Management
           </Heading>
           <Text color="gray.500" fontSize="sm" textAlign="center">
@@ -119,11 +69,11 @@ export default function LoginForm() {
           </Text>
 
           <FormControl isRequired>
-            <FormLabel>Mobile/Email</FormLabel>
+            <FormLabel>Email</FormLabel>
             <Input
-              placeholder="Enter mobile or email"
-              value={mobileOrEmail}
-              onChange={(e) => setMobileOrEmail(e.target.value)}
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               size="md"
               autoFocus
               bg="gray.50"
@@ -142,16 +92,7 @@ export default function LoginForm() {
             />
           </FormControl>
 
-          <Button
-            colorScheme="green"
-            type="submit"
-            width="full"
-            fontWeight="bold"
-            leftIcon={loading ? <Spinner size="sm" /> : <MdLogin />}
-            mt={2}
-            isLoading={loading}
-            loadingText="Logging in..."
-          >
+          <Button colorScheme="green" type="submit" width="full" fontWeight="bold" leftIcon={loading ? <Spinner size="sm" /> : <MdLogin />} mt={2} isLoading={loading} loadingText="Logging in...">
             Login
           </Button>
         </VStack>

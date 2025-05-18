@@ -33,95 +33,119 @@ import {
 import getUserById from "../../services/users/getUser";
 import { calculateOrderValues } from "../../utils/calculations";
 
+import {
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  arrayUnion,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../../firebase/firebase";
+
 export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
   const cancelRef = useRef();
   const navigate = useNavigate();
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentMade, setPaymentMade] = useState(false);
+  const [buyer, setBuyer] = useState(null);
+  const [seller, setSeller] = useState(null);
 
-  const buyer = getUserById(orderSummary?.buyerId);
-  const seller = getUserById(orderSummary?.sellerId);
+
+  useEffect(() => {
+    async function fetchUserNames() {
+      if (!orderSummary) return;
+      const buyerData = await getUserById(orderSummary.buyerId);
+      const sellerData = await getUserById(orderSummary.sellerId);
+      setBuyer(buyerData || "N/A");
+      setSeller(sellerData || "N/A");
+    }
+    fetchUserNames();
+  }, [orderSummary]);
 
   const calculations = calculateOrderValues(orderSummary?.inputs);
 
-  const hasRecorded = useRef(false); // ✅ Prevent duplicate execution
+  const hasRecorded = useRef(false); // Prevent duplicate execution
 
-  // Utility: Record no payment made
-  const recordNoPayment = () => {
+  const paymentsCollection = collection(db, "payments");
+  const ordersCollection = collection(db, "orders");
+
+  // Save no payment made record in Firestore
+  const recordNoPayment = async () => {
     if (hasRecorded.current || paymentMade || !orderSummary) return;
 
     const finalPrice = calculations?.finalPrice || 0;
 
-    const payments = JSON.parse(localStorage.getItem("payments")) || [];
-    const paymentId = `payment_${String(payments.length + 1).padStart(4, "0")}`;
-    const paymentStatus = finalPrice > 0 ? "PENDING" : "COMPLETED";
+    try {
+      const paymentDocRef = doc(paymentsCollection);
+      const paymentStatus = finalPrice > 0 ? "PENDING" : "COMPLETED";
 
-    const noPaymentRecord = {
-      id: paymentId,
-      orderId: orderSummary.orderId,
-      buyerId: orderSummary.buyerId,
-      sellerId: orderSummary.sellerId,
-      finalPrice,
-      paidAmount: 0,
-      dueAmount: finalPrice,
-      method: "N/A",
-      paymentStatus,
-      createdAt: new Date().toISOString(),
-    };
+      const noPaymentRecord = {
+        id: paymentDocRef.id,
+        orderId: orderSummary.orderId,
+        buyerId: orderSummary.buyerId,
+        sellerId: orderSummary.sellerId,
+        finalPrice,
+        paidAmount: 0,
+        dueAmount: finalPrice,
+        method: "N/A",
+        paymentStatus,
+        createdAt: serverTimestamp(),
+      };
 
-    // Save to payments
-    payments.push(noPaymentRecord);
-    localStorage.setItem("payments", JSON.stringify(payments));
+      await setDoc(paymentDocRef, noPaymentRecord);
 
-    // Update order's paymentIds
-    const orders = JSON.parse(localStorage.getItem("orders")) || [];
-    const updatedOrders = orders.map((order) =>
-      order.orderId === noPaymentRecord.orderId
-        ? {
-            ...order,
-            paymentIds: [...(order.paymentIds || []), noPaymentRecord.id],
-          }
-        : order
-    );
+      const orderDocRef = doc(db, "orders", orderSummary.orderId);
+      await updateDoc(orderDocRef, {
+        paymentIds: arrayUnion(paymentDocRef.id),
+      });
 
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
-
-    hasRecorded.current = true; // ✅ Mark as recorded
+      hasRecorded.current = true;
+    } catch (error) {
+      console.error("Failed to record no payment in Firestore", error);
+    }
   };
 
-  // Record payment on tab close
   useEffect(() => {
     const handleBeforeUnload = () => {
       recordNoPayment();
     };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
-
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [orderSummary, calculations, paymentMade]);
 
-  // Handle modal close
-  function handleClose() {
-    recordNoPayment();
+  const handleClose = async () => {
+    await recordNoPayment();
     setTimeout(() => {
       navigate("/buyer-dashboard");
     }, 1000);
-  }
+  };
+
   const openPayment = () => setIsPaymentOpen(true);
   const closePayment = () => setIsPaymentOpen(false);
 
-  const handlePaymentComplete = (paymentRecord) => {
-    // Save payment record to localStorage
-    const existingPayments = JSON.parse(localStorage.getItem("payments")) || [];
-    existingPayments.push(paymentRecord);
-    localStorage.setItem("payments", JSON.stringify(existingPayments));
+  // Save completed payment to Firestore and update order
+  const handlePaymentComplete = async (paymentRecord) => {
+    try {
+      const paymentDocRef = doc(paymentsCollection, paymentRecord.id);
+      await setDoc(paymentDocRef, {
+        ...paymentRecord,
+        createdAt: serverTimestamp(),
+      });
 
-    // Update UI state
-    setPaymentMade(true);
-    closePayment();
-    onClose();
+      const orderDocRef = doc(ordersCollection, orderSummary.orderId);
+      await updateDoc(orderDocRef, {
+        paymentIds: arrayUnion(paymentRecord.id),
+      });
+
+      setPaymentMade(true);
+      closePayment();
+      onClose();
+    } catch (error) {
+      console.error("Failed to save payment in Firestore", error);
+    }
   };
 
   return (
@@ -160,7 +184,6 @@ export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
           <ModalBody>
             {orderSummary && (
               <VStack spacing={6} align="stretch">
-                {/* Buyer, Seller, Date */}
                 <SimpleGrid columns={{ base: 2, md: 3 }} spacing={4}>
                   <Box>
                     <HStack>
@@ -202,8 +225,8 @@ export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
                       </Text>
                     </HStack>
                     <Text ml={8}>
-                      {orderSummary.created_at
-                        ? new Date(orderSummary.created_at).toLocaleDateString(
+                      {orderSummary.orderDate
+                        ? new Date(orderSummary.orderDate).toLocaleDateString(
                             undefined,
                             { year: "numeric", month: "short", day: "numeric" }
                           )
@@ -214,7 +237,6 @@ export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
 
                 <Divider />
 
-                {/* Inputs Section */}
                 <Box>
                   <Text
                     fontWeight="bold"
@@ -257,7 +279,6 @@ export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
                   </SimpleGrid>
                 </Box>
 
-                {/* Calculations Section */}
                 <Box>
                   <Text
                     fontWeight="bold"
@@ -348,7 +369,6 @@ export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
               </VStack>
             )}
 
-            {/* Make Payment button */}
             <Button mt={6} colorScheme="green" onClick={openPayment} w="full">
               Make Payment
             </Button>
@@ -356,7 +376,6 @@ export default function OrderSummaryModal({ isOpen, onClose, orderSummary }) {
         </ModalContent>
       </Modal>
 
-      {/* Nested payment modal */}
       <Modal
         isOpen={isPaymentOpen}
         onClose={closePayment}

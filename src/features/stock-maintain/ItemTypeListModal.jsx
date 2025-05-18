@@ -19,51 +19,118 @@ import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 
 import ItemTypeAddEditModal from "./ItemTypeAddEditModal";
 
+import {
+  fetchItemTypes,
+  addItemType,
+  updateItemType,
+  deleteItemType,
+} from "../../services/stock-maitain/ItemTypeService";
+
 export default function ItemTypeListModal({ isOpen, onClose }) {
   const [itemTypeList, setItemTypeList] = useState([]);
   const [addEditModalOpen, setAddEditModalOpen] = useState(false);
-  const [editItem, setEditItem] = useState(null); // null means add mode
+  const [editIndex, setEditIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  // Load from localStorage on open
   useEffect(() => {
-    if (isOpen) {
-      const saved = JSON.parse(localStorage.getItem("itemTypes") || "[]");
-      setItemTypeList(saved);
-    }
+    if (isOpen) loadItemTypes();
   }, [isOpen]);
 
-  // Save to localStorage helper
-  const saveList = (list) => {
-    setItemTypeList(list);
-    localStorage.setItem("itemTypes", JSON.stringify(list));
-  };
-
-  // Delete handler
-  const handleDelete = (index) => {
-    const confirmed = window.confirm("Are you sure you want to delete this item type?");
-    if (!confirmed) return;
-    const newList = [...itemTypeList];
-    newList.splice(index, 1);
-    saveList(newList);
-    toast({ title: "Deleted successfully", status: "success", duration: 2000 });
-  };
-
-  // Add or edit handler from modal
-  const handleAddEdit = (value) => {
-    if (editItem !== null) {
-      // edit mode
-      const newList = [...itemTypeList];
-      newList[editItem] = value;
-      saveList(newList);
-      toast({ title: "Updated successfully", status: "success", duration: 2000 });
-    } else {
-      // add mode
-      saveList([...itemTypeList, value]);
-      toast({ title: "Added successfully", status: "success", duration: 2000 });
+  async function loadItemTypes() {
+    setLoading(true);
+    try {
+      const itemTypes = await fetchItemTypes();
+      setItemTypeList(itemTypes);
+    } catch (error) {
+      console.error("Failed to load item types:", error);
+      toast({
+        title: "Failed to load item types",
+        status: "error",
+        duration: 3000,
+      });
+      setItemTypeList([]);
     }
+    setLoading(false);
+  }
+
+  const handleDelete = async (index) => {
+    const item = itemTypeList[index];
+    const confirmed = window.confirm(`Are you sure you want to delete "${item.name}"?`);
+    if (!confirmed) return;
+
+    try {
+      await deleteItemType(item.id);
+      const newList = itemTypeList.filter((_, i) => i !== index);
+      setItemTypeList(newList);
+      toast({
+        title: "Deleted successfully",
+        status: "success",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast({
+        title: "Delete failed",
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAddEdit = async (value) => {
+    if (!value || value.trim() === "") {
+      toast({
+        title: "Name cannot be empty",
+        status: "warning",
+        duration: 2000,
+      });
+      return;
+    }
+
+    if (editIndex !== null) {
+      // Edit mode
+      const itemToUpdate = itemTypeList[editIndex];
+      try {
+        await updateItemType(itemToUpdate.id, { name: value });
+        const newList = [...itemTypeList];
+        newList[editIndex] = { ...itemToUpdate, name: value };
+        setItemTypeList(newList);
+        toast({
+          title: "Updated successfully",
+          status: "success",
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error("Update failed:", error);
+        toast({
+          title: "Update failed",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    } else {
+      // Add mode
+      try {
+        const newItem = await addItemType({ name: value });
+        setItemTypeList([...itemTypeList, newItem]);
+        toast({
+          title: "Added successfully",
+          status: "success",
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error("Add failed:", error);
+        toast({
+          title: "Add failed",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    }
+
     setAddEditModalOpen(false);
-    setEditItem(null);
+    setEditIndex(null);
   };
 
   return (
@@ -71,18 +138,18 @@ export default function ItemTypeListModal({ isOpen, onClose }) {
       <Modal isOpen={isOpen} onClose={onClose} size="md" scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>
-            Item Types (Total: {itemTypeList.length})
-          </ModalHeader>
+          <ModalHeader>Item Types (Total: {itemTypeList.length})</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {itemTypeList.length === 0 ? (
+            {loading ? (
+              <Text>Loading...</Text>
+            ) : itemTypeList.length === 0 ? (
               <Text>No item types available.</Text>
             ) : (
               <VStack align="start" spacing={2}>
                 {itemTypeList.map((item, i) => (
                   <Box
-                    key={i}
+                    key={item.id}
                     p={2}
                     borderWidth="1px"
                     borderRadius="md"
@@ -91,14 +158,14 @@ export default function ItemTypeListModal({ isOpen, onClose }) {
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <Text>{item}</Text>
+                    <Text>{item.name}</Text>
                     <HStack spacing={1}>
                       <IconButton
                         icon={<FaEdit />}
                         aria-label="Edit"
                         size="sm"
                         onClick={() => {
-                          setEditItem(i);
+                          setEditIndex(i);
                           setAddEditModalOpen(true);
                         }}
                       />
@@ -120,7 +187,7 @@ export default function ItemTypeListModal({ isOpen, onClose }) {
               leftIcon={<FaPlus />}
               colorScheme="green"
               onClick={() => {
-                setEditItem(null);
+                setEditIndex(null);
                 setAddEditModalOpen(true);
               }}
             >
@@ -133,15 +200,14 @@ export default function ItemTypeListModal({ isOpen, onClose }) {
         </ModalContent>
       </Modal>
 
-      {/* Add/Edit Modal */}
       <ItemTypeAddEditModal
         isOpen={addEditModalOpen}
         onClose={() => {
           setAddEditModalOpen(false);
-          setEditItem(null);
+          setEditIndex(null);
         }}
         onSave={handleAddEdit}
-        initialValue={editItem !== null ? itemTypeList[editItem] : ""}
+        initialValue={editIndex !== null ? itemTypeList[editIndex].name : ""}
       />
     </>
   );

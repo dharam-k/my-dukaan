@@ -1,4 +1,4 @@
-import React, { useState } from "react";  
+import React, { useEffect, useState } from "react";  
 import {  
   ModalFooter,  
   Button,  
@@ -12,6 +12,9 @@ import {
   useToast,  
 } from "@chakra-ui/react";  
 import { useNavigate } from "react-router-dom";
+import { addPayment } from "../../services/payments/PaymentService";
+import getUserById from "../../services/users/getUser";
+import { getNextPaymentId } from "../../services/payments/counterPaymentID";
 
 function MakePendingOrderPayment({  
   isOpen,  
@@ -23,6 +26,8 @@ function MakePendingOrderPayment({
   const [paymentAmount, setPaymentAmount] = useState("");  
   const [paymentType, setPaymentType] = useState("cash");  
   const [isSubmitting, setIsSubmitting] = useState(false);  
+   const [buyerName, setBuyerName] = useState(null);
+  const [sellerName, setSellerName] = useState(null);
   const toast = useToast();  
   const navigate = useNavigate();  
 
@@ -34,91 +39,112 @@ function MakePendingOrderPayment({
   const remainDueAmount = dueAmount - paymentAmount;
   const paymentStatus = remainDueAmount > 0.0 ? "Pending" : "Completed";  
 
-  const handlePaymentSubmit = () => {  
-    if (isSubmitting) return; // Prevent double submits  
-
-    if (!paymentAmount || amountNum <= 0) {  
-      toast({  
-        title: "Invalid payment amount",  
-        status: "error",  
-        duration: 3000,  
-        isClosable: true,  
-      });  
-      return;  
-    }  
-    if (amountNum > finalPrice) {  
-      toast({  
-        title: "Payment amount cannot be greater than final price",  
-        status: "error",  
-        duration: 3000,  
-        isClosable: true,  
-      });  
-      return;  
-    }  
-
-    setIsSubmitting(true);  
-
-    // Load existing payments  
-    const existingPayments = JSON.parse(localStorage.getItem("payments")) || [];  
-    const paymentId = `payment_${String(existingPayments.length + 1).padStart(4, "0")}`;   
-
-    const paymentRecord = {  
-      id: paymentId,  
-      orderId: orderSummary.orderId,  
-      buyerId: orderSummary.buyerId,  
-      sellerId: orderSummary.sellerId,  
-      finalPrice : finalPrice,  
-      paidAmount: paymentAmount,  
-      dueAmount : remainDueAmount,  
-      method: paymentType,  
-      paymentStatus,  
-      createdAt: new Date().toISOString()
-    };  
-
-    existingPayments.push(paymentRecord);  
-    localStorage.setItem("payments", JSON.stringify(existingPayments)); 
-    
-    // Update orders to include new payment ID  
-    const orders = JSON.parse(localStorage.getItem("orders")) || [];  
-    const updatedOrders = orders.map((order) => {  
-      if (order.orderId === paymentRecord.orderId) {  
-        const existingIds = order.paymentIds || [];
-        return {  
-          ...order,  
-          paymentIds: [...existingIds, paymentRecord.id],  
-        };  
+   // Fetch buyer and seller names for display  
+  useEffect(() => {  
+    async function fetchUserNames() {  
+      if (orderSummary.buyerId) {  
+        try {  
+          const buyer = await getUserById(orderSummary.buyerId);  
+          setBuyerName(buyer?.name ?? "N/A");  
+        } catch {  
+          setBuyerName("N/A");  
+        }  
       }  
-      return order;  
-    });  
 
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));  
+      if (orderSummary.sellerId) {  
+        try {  
+          const seller = await getUserById(orderSummary.sellerId);  
+          setSellerName(seller?.name ?? "N/A");  
+        } catch {  
+          setSellerName("N/A");  
+        }  
+      }  
+    }  
 
-    toast({  
-      title: "Payment successful!",  
-      description: "Thank you for your payment.",  
-      status: "success",  
-      duration: 3000,  
-      isClosable: true,  
-    });  
+    fetchUserNames();  
+  }, [orderSummary.buyerId, orderSummary.sellerId]);  
 
-    // Reset fields  
-    setPaymentAmount("");  
-    setPaymentType("cash");  
-    setIsSubmitting(false);  
-    // Close the modal after successful payment  
-    onClose();
+  const handlePaymentSubmit = async () => {
+    if (isSubmitting) return;
 
-    setTimeout(() => {  
-      navigate("/buyer-dashboard");  
-    }, 3000);    
-  };  
+    const amountNum = Number(paymentAmount) || 0;
+
+    if (!paymentAmount || amountNum <= 0) {
+      toast({
+        title: "Invalid payment amount",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (amountNum > finalPrice) {
+      toast({
+        title: "Payment amount cannot be greater than final price",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const paymentId = await getNextPaymentId(); 
+      await addPayment(
+        {
+          id: paymentId,
+          orderId: orderSummary.orderId,
+          buyerId: orderSummary.buyerId,
+          sellerId: orderSummary.sellerId,
+          finalPrice: finalPrice,
+          paidAmount: amountNum,
+          dueAmount: remainDueAmount,
+          method: paymentType,
+          paymentStatus: paymentStatus,
+        },
+        orderSummary.id // Firestore document ID of order to update
+      );
+
+      toast({
+        title: "Payment successful!",
+        description: "Thank you for your payment.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      setPaymentAmount("");
+      setPaymentType("cash");
+      onClose();
+
+      if (onPaymentComplete) {
+        onPaymentComplete();
+      }
+
+      setTimeout(() => {
+        navigate("/buyer-dashboard");
+      }, 3000);
+    } catch (error) {
+      toast({
+        title: "Payment failed",
+        description: error.message || "Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (  
     <ModalFooter flexDirection="column" gap={4} pt={0}>  
       <VStack spacing={3} align="stretch" w="full">  
         <Text><b>Order ID:</b> {orderSummary.orderId}</Text>  
-        <Text><b>Buyer:</b> {orderSummary.buyerId}</Text>  
-        <Text><b>Seller:</b> {orderSummary.sellerId}</Text>  
+        <Text><b>Buyer:</b> {buyerName}</Text>  
+        <Text><b>Seller:</b> {sellerName}</Text>  
         <Text color={"green"}><b>Total Price:</b> ₹{finalPrice}</Text>  
         <Text color={"red"}><b>Total Due:</b> ₹{dueAmount}</Text>  
 

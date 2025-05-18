@@ -1,4 +1,4 @@
-import React, { useState } from "react";  
+import React, { useEffect, useState } from "react";  
 import {  
   Box,  
   VStack,  
@@ -8,7 +8,6 @@ import {
   Divider,  
   Button,  
   useDisclosure,
-  MenuDivider,
   useToast,
 } from "@chakra-ui/react";  
 import { FaWeight, FaBoxes, FaUsers, FaRupeeSign, FaMoneyBillWave, FaBalanceScaleRight} from "react-icons/fa";   
@@ -27,6 +26,10 @@ import BuyerCardDetail from "../../users/buyers/BuyerCardDetail";
 import SellerSelector from "../../users/sellers/SellerSelector";
 import SellerCardDetail from "../../users/sellers/SellerCardDetail";
 
+import { addOrder } from "../../services/orders/OrderService"; // New OrderService import
+import { subscribeCurrentUser } from "../../services/users/UserService";
+import { getNextOrderId } from "../../services/orders/counterOrderID";
+
 export default function CreateOrder() {  
   const [selectedSeller, setSelectedSeller] = useState(null);  
   const [ratePerQuantal, setRatePerQuantal] = useState("");  
@@ -40,20 +43,26 @@ export default function CreateOrder() {
   const [totalPoldar, setTotalPoldar] = useState("");
   const [baadWajan, setBaadWajan] = useState(500);
   const [orderDate, setOrderDate] = useState(new Date());  
-   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
-  
-    const openUserMenu = () => setIsUserMenuOpen(true);  
-    const closeUserMenu = () => setIsUserMenuOpen(false);  
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
   const { isOpen, onOpen, onClose } = useDisclosure();  
 
   const [orderSummary, setOrderSummary] = useState(null); 
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const navigate = useNavigate();
 
+  const openUserMenu = () => setIsUserMenuOpen(true);  
+  const closeUserMenu = () => setIsUserMenuOpen(false); 
+
+  // Parsing numeric values safely
   const weightNum = parseFloat(totalWeight) || 0;  
   const rateNum = parseFloat(ratePerQuantal) || 0;  
   const itemNum = parseFloat(totalItem) || 0;  
   const poldariNum = parseFloat(poldariRate) || 0;  
   const poldarNum = parseFloat(totalPoldar) || 0;   
+
   const totalPolidari = itemNum * poldariNum;  
   const perHeadPoldari = poldarNum > 0 ? totalPolidari / poldarNum : 0;  
   const totalbaadWajan =  parseFloat(((baadWajan/100)* weightNum)/1000).toFixed(2);
@@ -61,18 +70,20 @@ export default function CreateOrder() {
   const totalPrice = (finalWeight / 100) * rateNum; 
   const finalPrice = totalPrice - totalPolidari; 
 
+  useEffect(() => {
+    const unsubscribe = subscribeCurrentUser(userData => {
+      console.log(userData)
+      setLoggedInUser(userData);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  const navigate = useNavigate();  
   const handleClose = () => {  
-    onClose();          // Close the modal first  
-    navigate("/buyer-dashboard"); // Navigate to dashboard page  
-  };  
+    onClose();
+    navigate("/buyer-dashboard");
+  };
 
-  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser")) || [];
-    // Submit handler  
-  const toast = useToast();
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedSeller || !orderDate) {
       toast({
         title: "Missing seller or date",
@@ -89,11 +100,9 @@ export default function CreateOrder() {
       !poldariRate ||
       !dharmKata ||
       !baadWajan ||
-      !finalWeight ||
-      !totalWeight ||
-      !totalbaadWajan ||
-      !totalItem ||
-      !totalPoldar ||
+      weightNum <= 0 ||
+      itemNum <= 0 ||
+      poldarNum <= 0 ||
       !itemType ||
       !quality ||
       !warehouse
@@ -108,49 +117,58 @@ export default function CreateOrder() {
       return;
     }
 
-    const existingOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    try {
+      setLoading(true);
 
-    const newOrderId = `OD-${String(existingOrders.length + 1).padStart(4, "0")}`;
+      const newOrderId = await getNextOrderId();   // Get sequential order ID!
 
-    const newOrder = {
-      id: `order_${String(existingOrders.length + 1).padStart(4, "0")}`,
-      orderId: newOrderId,
-      buyerId: loggedInUser?.id || "unknown_buyer",
-      sellerId: selectedSeller?.id || "unknown_seller",
-      created_at: new Date().toISOString(),
-      inputs: {
-        ratePerQuantal: parseFloat(ratePerQuantal),
-        poldariRate: parseFloat(poldariRate),
-        dharmKata,
-        baadWajan: parseFloat(baadWajan),
-        totalWeight: parseFloat(totalWeight),
-        totalbaadWajan: parseFloat(totalbaadWajan),
-        finalWeight: parseFloat(finalWeight.toFixed(2)),
-        totalItem,
-        totalPoldar,
-        itemType,
-        quality,
-        warehouse,
-      },
-      paymentIds: [],
-    };
+      const newOrder = {
+        orderId: newOrderId,  
+        buyerId: loggedInUser?.id || "unknown_buyer",
+        sellerId: selectedSeller?.id || "unknown_seller",
+        orderDate: orderDate.toISOString(),
+        inputs: {
+          ratePerQuantal: rateNum,
+          poldariRate: poldariNum,
+          dharmKata,
+          baadWajan: parseFloat(baadWajan),
+          totalWeight: weightNum,
+          totalbaadWajan: parseFloat(totalbaadWajan),
+          finalWeight: parseFloat(finalWeight.toFixed(2)),
+          totalItem: itemNum,
+          totalPoldar: poldarNum,
+          itemType,
+          quality,
+          warehouse,
+        },
+        paymentIds: [],
+      };
 
-    existingOrders.push(newOrder);
-    localStorage.setItem("orders", JSON.stringify(existingOrders));
+      const docId = await addOrder(newOrder);
 
-    toast({
-      title: "Order Created",
-      description: `Order ${newOrderId} has been created successfully.`,
-      status: "success",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
-    });
+      toast({
+        title: "Order Created",
+        description: `Order successfully created - ${newOrderId}.`,
+        status: "success",
+        duration: 3000,
+        position: "top",
+        isClosable: true,
+      });
 
-    setOrderSummary(newOrder);
-    onOpen();
+      setOrderSummary({ ...newOrder, id: docId });
+      onOpen();
+    } catch (error) {
+      toast({
+        title: "Order creation failed",
+        description: error.message || "Please try again later.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
- 
 
   return (  
      <>  
@@ -160,7 +178,7 @@ export default function CreateOrder() {
         <UserProfileDrawer  
           isOpen={isUserMenuOpen}  
           onClose={closeUserMenu}  
-          userName={loggedInUser?.name} // Pass real user name dynamically here  
+          userName={loggedInUser?.name}  
         />  
 
         <VStack spacing={6} align="stretch">  
@@ -187,7 +205,6 @@ export default function CreateOrder() {
                 <Box p={4} borderWidth="1px" borderRadius="md" bg="blue.50">  
                   <HStack alignItems={"baseline"} spacing={2}>  
                     <SellerCardDetail seller={selectedSeller} />  
-                    {/* Bind DatePicker */}  
                     <DatePicker  
                       value={orderDate}  
                       onChange={(date) => setOrderDate(date)}  
@@ -239,6 +256,7 @@ export default function CreateOrder() {
                   setBaadWajan={setBaadWajan} 
                 />  
               </Box>  
+
               <Box
                 p={6}
                 borderWidth="1px"
@@ -266,7 +284,7 @@ export default function CreateOrder() {
                       <Box color="red.500">
                         <FaMoneyBillWave />
                       </Box>
-                      <Text >
+                      <Text>
                         कुल पोल्दारी (Rs): ₹
                         {totalPolidari.toLocaleString("en-IN", {
                           minimumFractionDigits: 2,
@@ -326,8 +344,6 @@ export default function CreateOrder() {
                         कुल वजन: {finalWeight > 0 ? (finalWeight).toFixed(2) : "0.00"} kg
                       </Text>
                     </HStack>
-
-  
                   </Box>
 
                   {/* PRICE SUMMARY BOX */}
@@ -371,8 +387,7 @@ export default function CreateOrder() {
                   </Box>
                 </SimpleGrid>
 
-                {/* Submit Button */}
-                <Button mt={6} colorScheme="green" onClick={handleSubmit}>
+                <Button mt={6} colorScheme="green" onClick={handleSubmit} isLoading={loading}>
                   Submit Order
                 </Button>
               </Box>
@@ -380,15 +395,13 @@ export default function CreateOrder() {
           )}  
         </VStack>  
       </Box>  
-      {/* Footer */}  
       <Footer  />  
 
-    {/* Order Summary Modal */}  
-    <OrderSummaryModal  
-      isOpen={isOpen}  
-      onClose={handleClose}  
-      orderSummary={orderSummary}  
-    />
+      <OrderSummaryModal  
+        isOpen={isOpen}  
+        onClose={handleClose}  
+        orderSummary={orderSummary}  
+      />
     </>   
   );  
 }

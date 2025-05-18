@@ -23,6 +23,9 @@ import Navbar from "../../components/layout/Navbar";
 import UserProfileDrawer from "../../components/layout/UserProfileDrawer";
 import Footer from "../../components/layout/Footer";
 import { OrdersTable } from "../orders/OrdersTable";
+import { subscribeCurrentUser, subscribeUsers } from "../../services/users/UserService";
+import { subscribeOrders } from "../../services/orders/OrderService";
+import { subscribePayments } from "../../services/payments/PaymentService";
 
 export default function BuyerDashboard() {  
   const [totalOrders, setTotalOrders] = useState([]);  
@@ -32,14 +35,107 @@ export default function BuyerDashboard() {
   const [inventoryStats, setInventoryStats] = useState([]);  
   const [sellersMillsStats, setSellersMillsStats] = useState([]);  
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  
+  const [loggedInUser, setLoggedInUser] = useState(null);
+
+    // Data from Firebase
+  const [users, setUsers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [payments, setPayments] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeCurrentUser(userData => {
+      setLoggedInUser(userData);
+    });
+    return () => unsubscribe();
+  }, []);
 
 
   const openUserMenu = () => setIsUserMenuOpen(true);  
   const closeUserMenu = () => setIsUserMenuOpen(false); 
 
+  // Subscribe to logged-in user data
+  useEffect(() => {
+    const unsubscribe = subscribeCurrentUser(setLoggedInUser);
+    return () => unsubscribe();
+  }, []);
 
+    // Subscribe to users collection
+  useEffect(() => {
+    const unsubscribe = subscribeUsers(
+      (data) => setUsers(data),
+      (err) => console.error("Error fetching users:", err)
+    );
+    return () => unsubscribe();
+  }, []);
 
-  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser")) || [];
+    // Subscribe to orders collection
+  useEffect(() => {
+    const unsubscribe = subscribeOrders(
+      (data) => setOrders(data),
+      (err) => console.error("Error fetching orders:", err)
+    );
+    return () => unsubscribe();
+  }, []);
+
+  // Subscribe to payments collection
+  useEffect(() => {
+    const unsubscribe = subscribePayments(
+      (data) => setPayments(data),
+      (err) => console.error("Error fetching payments:", err)
+    );
+    return () => unsubscribe();
+  }, []);
+
+  // Compute all stats on fresh data change
+  useEffect(() => {
+    try {
+      // Total Orders count
+      const totalOrdersCount = orders.length;
+
+      // Total Sellers count based on fetched users with userType 'seller'
+      const totalSellersCount = users.filter(u => u.userType === "seller").length;
+
+      // Pending payments count
+      const pendingPaymentsCount = payments.filter(p => p.paymentStatus === "PENDING").length;
+
+      setOverviewStats([
+        { label: "Total Orders", value: totalOrdersCount },
+        { label: "Total Sellers", value: totalSellersCount },
+        { label: "Pending Payments", value: pendingPaymentsCount, isCurrency: true },
+      ]);
+
+      // Completed/Pending orders counts based on payments
+      const completedPaymentsOrderIds = new Set(
+        payments.filter(p => p.paymentStatus === "COMPLETED").map(p => p.orderId)
+      );
+      const completedOrdersCount = orders.filter(o => completedPaymentsOrderIds.has(o.orderId)).length;
+      const pendingOrdersCount = totalOrdersCount - completedOrdersCount;
+
+      setOrderAnalyticsStats([
+        { label: "Completed Orders", value: completedOrdersCount },
+        { label: "Pending Orders", value: pendingOrdersCount },
+      ]);
+
+      // Inventory stats
+      const warehouses = new Set(orders.map(o => o.inputs?.warehouse).filter(Boolean));
+      const totalItems = orders.reduce((acc, o) => acc + (Number(o.inputs?.totalItem) || 0), 0);
+      const totalWeightSum = orders.reduce((acc, o) => acc + (Number(o.inputs?.totalWeight) || 0), 0);
+
+      setInventoryStats([
+        { label: "Total Warehouses", value: warehouses.size },
+        { label: "Total Items", value: totalItems },
+        { label: "Total Weights", value: (totalWeightSum / 100).toFixed(2), unit: "quantal" },
+      ]);
+
+      setSellersMillsStats([
+        { label: "Total Sellers", value: totalSellersCount },
+        { label: "Total Mills", value: 0 }, // Replace or extend with mills data if you have
+      ]);
+    } catch (err) {
+      console.error("Error computing stats:", err);
+    }
+  }, [users, orders, payments]);
+
   useEffect(() => { 
     
     try {  
@@ -145,7 +241,7 @@ export default function BuyerDashboard() {
         <UserProfileDrawer  
           isOpen={isUserMenuOpen}  
           onClose={closeUserMenu}  
-          userName={loggedInUser.name} 
+          userName={loggedInUser?.name} 
         /> 
 
 
@@ -219,7 +315,7 @@ export default function BuyerDashboard() {
       {/* Recent Orders Table */}  
       <OrdersTable orders={totalOrders} />  
       {/* Pending Payments Table */}  
-      <PaymentsTable orders={totalOrders} payments={totalPayments} /> 
+      <PaymentsTable /> 
         {/* Footer */}  
         <Footer />  
     </Box>  

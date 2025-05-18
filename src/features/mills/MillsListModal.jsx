@@ -23,25 +23,36 @@ import {
 } from "@chakra-ui/react";
 import { FaEye, FaIndustry } from "react-icons/fa";
 
+import { fetchMills } from "../../services/mills/MillService";
+
 export default function MillsListModal({ isOpen, onClose }) {
   const [mills, setMills] = useState([]);
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
     if (isOpen) {
-      try {
-        const storedMills = JSON.parse(localStorage.getItem("mills")) || [];
-        setMills(storedMills);
-      } catch (e) {
-        toast({
-          title: "Failed to load mills",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
+      loadMills();
     }
-  }, [isOpen, toast]);
+  }, [isOpen]);
+
+  async function loadMills() {
+    setLoading(true);
+    try {
+      const millsData = await fetchMills();
+      setMills(millsData);
+    } catch (error) {
+      console.error("Failed to load mills", error);
+      toast({
+        title: "Failed to load mills",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setMills([]);
+    }
+    setLoading(false);
+  }
 
   const handleViewDetails = (mill) => {
     alert(
@@ -56,7 +67,6 @@ export default function MillsListModal({ isOpen, onClose }) {
       size={{ base: "full", md: "xl", lg: "4xl" }}
       isCentered
       scrollBehavior="inside"
-      
     >
       <ModalOverlay />
       <ModalContent
@@ -90,7 +100,9 @@ export default function MillsListModal({ isOpen, onClose }) {
         <ModalCloseButton size="lg" />
 
         <ModalBody px={{ base: 3, md: 8 }} pb={8}>
-          {mills.length === 0 ? (
+          {loading ? (
+            <Text>Loading mills...</Text>
+          ) : mills.length === 0 ? (
             <Box
               p={6}
               textAlign="center"

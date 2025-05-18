@@ -1,22 +1,18 @@
 import './App.css';
-import { BrowserRouter as Router } from "react-router-dom";  
-import { users } from './utils/constants';
+import { BrowserRouter as Router } from "react-router-dom";
 import AppRoutes from './routes/AppRoutes';
+import { AuthProvider } from './features/auth/AuthContext';
 
 function App() {
-
-  const seedDummyUsers = () => {
-    if (!localStorage.getItem("users")) {
-      localStorage.setItem("users", JSON.stringify(users));
-    }
-  };
-
-  seedDummyUsers();
+  
+  // Remove localStorage user seeding, Firebase Auth will handle users
 
   return (
-    <Router>
-        <AppRoutes/>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </AuthProvider>
   );
 }
 

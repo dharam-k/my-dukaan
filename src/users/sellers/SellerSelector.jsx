@@ -1,4 +1,3 @@
-// src/components/Sellers/SellerSelector.jsx  
 import React, { useState, useEffect } from "react";  
 import {  
   Box,  
@@ -10,42 +9,56 @@ import {
   useToast,  
 } from "@chakra-ui/react";  
 import AddSeller from "./AddSeller";
+import { fetchSellers } from "../../services/users/SellerService";
 
 export default function SellerSelector({ selectedSeller, setSelectedSeller }) {  
   const [sellers, setSellers] = useState([]);  
   const [searchTerm, setSearchTerm] = useState("");  
   const [filteredSellers, setFilteredSellers] = useState([]);  
   const [creatingSeller, setCreatingSeller] = useState(false);  
+  const [loadingSellers, setLoadingSellers] = useState(false);
+  
   const [newSeller, setNewSeller] = useState({  
-    id: "",  
     name: "",  
     address: "",  
     phone: "",  
-    password: "1234",  
-    userType: "seller",  
-    isActive: true,  
-    loginActive: false,  
-    createdAt: new Date().toISOString(),  
+    email: "",
+    password: "",
   });  
 
-  const toast = useToast();  
+  const toast = useToast();
 
+  // Load sellers from Firestore on mount
   useEffect(() => {  
-    const stored = JSON.parse(localStorage.getItem("users"));  
-    if (stored?.length) {  
-      const filteredSellers = stored.filter((u) => u.userType === "seller");  
-      setSellers(filteredSellers);  
-      setFilteredSellers(filteredSellers);  
-    }  
-  }, []);  
+    async function loadSellers() {
+      setLoadingSellers(true);
+      try {
+        const data = await fetchSellers();
+        setSellers(data);
+        setFilteredSellers(data);
+      } catch (error) {
+        toast({
+          title: "Failed to load sellers",
+          description: error.message || "Please try again later.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoadingSellers(false);
+      }
+    }
+    loadSellers();
+  }, [toast]);
 
+  // Filter sellers safely based on search term
   useEffect(() => {  
     if (!searchTerm) {  
-      setFilteredSellers([]);  
+      setFilteredSellers(sellers);  
       return;  
     }  
     const filtered = sellers.filter((s) =>  
-      s.name.toLowerCase().includes(searchTerm.toLowerCase())  
+      s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase())  
     );  
     setFilteredSellers(filtered);  
   }, [searchTerm, sellers]);  
@@ -61,51 +74,25 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
     setSelectedSeller(null);  
   };  
 
-  const handleSaveNewSeller = () => {  
-    if (!newSeller.name.trim()) {  
-      toast({  
-        title: "Name is required",  
-        status: "error",  
-        duration: 2000,  
-        isClosable: true,  
-      });  
-      return;  
-    }  
+  const handleNewSellerCreated = (createdSeller) => {
+    // Normalize createdSeller fields, add fallback name/id if missing
+    console.log(createdSeller.id)
+    const sellerToAdd = {
+      id: createdSeller.id || createdSeller.uid || new Date().getTime().toString(),
+      name: createdSeller.name || createdSeller.name || "Unnamed Seller",
+      address: createdSeller.address || "",
+      phone: createdSeller.phone || "",
+      email: createdSeller.email || "",
+    };
 
-    const allUsers = JSON.parse(localStorage.getItem("users")) || [];  
-    const sellerWithId = {  
-      ...newSeller,  
-      id: `seller-${Date.now()}`,  
-    };  
-    const updatedUsers = [...allUsers, sellerWithId];  
-    const updatedSellers = updatedUsers.filter((u) => u.userType === "seller");  
-
-    localStorage.setItem("users", JSON.stringify(updatedUsers));  
-    setSellers(updatedSellers);  
-    setFilteredSellers(updatedSellers);  
-
-    toast({  
-      title: "Seller created",  
-      status: "success",  
-      duration: 2000,  
-      isClosable: true,  
-    });  
-
-    setSelectedSeller(sellerWithId);  
-    setCreatingSeller(false);  
-    setNewSeller({  
-      id: "",  
-      name: "",  
-      address: "",  
-      phone: "",  
-      password: "",  
-      userType: "seller",  
-      isActive: true,  
-      loginActive: false,  
-      createdAt: new Date().toISOString(),  
-    });  
-    setSearchTerm("");  
-  };  
+    const updatedSellers = [...sellers, sellerToAdd];
+    setSellers(updatedSellers);
+    setFilteredSellers(updatedSellers);
+    setSelectedSeller(sellerToAdd);
+    setCreatingSeller(false);
+    setSearchTerm("");
+    setNewSeller({ name: "", address: "", phone: "", email: "", password: "" });
+  };
 
   return (  
     <Box display={"flex"} flexDirection={"column"} p={0}>  
@@ -114,6 +101,7 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
         placeholder="Type seller name..."  
         value={searchTerm}  
         onChange={(e) => setSearchTerm(e.target.value)}  
+        isDisabled={loadingSellers}
       />  
 
       {searchTerm ? (  
@@ -128,11 +116,11 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
           p={2}  
         >  
           {filteredSellers.length > 0 ? (  
-            filteredSellers.map((seller, i) => (  
+            filteredSellers.map((seller) => (  
               <Button  
-                variant={selectedSeller?.name === seller.name ? "solid" : "ghost"}  
+                variant={selectedSeller?.id === seller.id ? "solid" : "ghost"}  
                 colorScheme="blue"  
-                key={i}  
+                key={seller.id}  
                 size="sm"  
                 justifyContent="flex-start"  
                 p={3}  
@@ -165,17 +153,18 @@ export default function SellerSelector({ selectedSeller, setSelectedSeller }) {
           p={5}  
           colorScheme="green"  
           onClick={handleCreateSellerToggle}  
+          isDisabled={loadingSellers}
         >  
           Create New Seller  
         </Button>  
       )}  
 
-      {creatingSeller && (  
+      {creatingSeller && (
         <AddSeller  
           newSeller={newSeller}  
           setNewSeller={setNewSeller}  
-          onSave={handleSaveNewSeller}  
           onCancel={() => setCreatingSeller(false)}  
+          onCreated={handleNewSellerCreated} 
         />  
       )}  
     </Box>  

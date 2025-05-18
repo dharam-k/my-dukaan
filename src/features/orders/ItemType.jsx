@@ -1,23 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";
-import Select from "react-select"; // <- change here from creatable to regular Select
+import Select from "react-select";
 import { FaTag } from "react-icons/fa";
 import { hindiDictionary } from "../../utils/constants";
+import { fetchItemTypes } from "../../services/stock-maitain/ItemTypeService";
 
 export default function ItemType({ itemType, setItemType }) {
   const [options, setOptions] = useState([]);
 
   useEffect(() => {
-    const storedItemTypes = JSON.parse(localStorage.getItem("itemTypes") || "[]");
-    if (Array.isArray(storedItemTypes) && storedItemTypes.length > 0) {
-      const mappedOptions = storedItemTypes.map((eng) => ({
-        eng,
-        hin: hindiDictionary[eng] || eng, // fallback to English if Hindi not found
-      }));
-      setOptions(mappedOptions);
-    } else {
-      setOptions([]);
+    async function loadItemTypes() {
+      try {
+        const itemTypesFromDb = await fetchItemTypes();
+        // Assuming itemTypesFromDb = [{ id, name }]
+        const mappedOptions = itemTypesFromDb.map(({ name }) => ({
+          eng: name,
+          hin: hindiDictionary[name] || name, // fallback to English if Hindi not found
+        }));
+        setOptions(mappedOptions);
+      } catch (error) {
+        console.error("Failed to fetch item types from Firestore:", error);
+        setOptions([]);
+      }
     }
+    loadItemTypes();
   }, []);
 
   const selectedItem = itemType

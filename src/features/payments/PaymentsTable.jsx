@@ -1,219 +1,354 @@
-import React, { useState, useMemo } from "react";  
-import {  
-  Table, Thead, Tbody, Tr, Th, Td, Box, Text, Badge, Button, HStack, Input, Select  
-} from "@chakra-ui/react";  
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Box,
+  Text,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  Button,
+  HStack,
+  Input,
+  Select,
+  Spinner,
+  useToast,
+} from "@chakra-ui/react";
 import PaymentDetail from "./PaymentDetail";
-import getUserById from "../../services/users/getUser";
+import getUserById from "../../services/users/getUser"; // async fetch user by ID
+import { subscribePayments } from "../../services/payments/PaymentService";
+import { getOrderById } from "../../services/orders/OrderService";
 
-const PAGE_SIZE = 5;  
+const PAGE_SIZE = 5;
 
-export function PaymentsTable({ payments = [], orders = [] }) {   
-  // All hooks first, no conditional returns before these  
-  const [currentPage, setCurrentPage] = useState(1);  
-  const [selectedOrder, setSelectedOrder] = useState(null);  
-  const [isModalOpen, setIsModalOpen] = useState(false);  
-  const [paymentSummary, setPaymentSummary] = useState(null);   
+export function PaymentsTable() {
+  const [payments, setPayments] = useState([]);
+  const [usersCache, setUsersCache] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [searchTerm, setSearchTerm] = useState("");  
-  const [filterPaymentStatus, setFilterPaymentStatus] = useState("");  
-  const [sortBy, setSortBy] = useState({ key: "orderId", order: "asc" });  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // Use safe default arrays to avoid undefined errors  
-  const safePayments = payments || [];  
-  const safeOrders = orders || [];  
-  console.log(orders)
-  console.log(payments)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [sortBy, setSortBy] = useState({ key: "orderId", order: "asc" });
 
-  // Prepare filtered payments based on search and filterPaymentStatus  
-  const filteredPayments = useMemo(() => { 
-      // Sort payments by createdAt descending (newest first)  
-    const sortedPayments = [...safePayments].sort((a, b) => {  
-      const dateA = new Date(a.createdAt);  
-      const dateB = new Date(b.createdAt);  
-      return dateB - dateA; // descending order  
-    });   
-    return sortedPayments.filter(p => {  
-      if (searchTerm) {  
-        const lowerSearch = searchTerm.toLowerCase();  
-        const matchesOrderId = p.orderId.toLowerCase().includes(lowerSearch);  
-        const matchesSeller = (getUserById(p.sellerId).name || "").toLowerCase().includes(lowerSearch);  
-        const matchesBuyer = (getUserById(p.buyerId).name || "").toLowerCase().includes(lowerSearch);  
-        if (!matchesOrderId && !matchesSeller && !matchesBuyer) return false;  
-      }  
-      if (filterPaymentStatus && p.paymentStatus !== filterPaymentStatus) return false;  
-      return true;  
-    });  
-  }, [safePayments, searchTerm, filterPaymentStatus]);  
+  const toast = useToast();
 
-  // Sort the filtered payments  
-  const sortedPayments = useMemo(() => {  
-    const { key, order } = sortBy;  
+  // Subscribe to payments data
+  useEffect(() => {
+    setLoading(true);
+    const unsubscribe = subscribePayments(
+      (data) => {
+        setPayments(data);
+        setLoading(false);
+      },
+      (err) => {
+        setError(err);
+        setLoading(false);
+        toast({
+          title: "Failed to load payments",
+          description: err.message || "Please try again later.",
+          status: "error",
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+    );
+    return () => unsubscribe();
+  }, [toast]);
 
-    return filteredPayments.slice().sort((a, b) => {  
-      let aVal = a[key];  
-      let bVal = b[key];  
+  // Memo: keep only latest payment per orderId
+  const lastPaymentsByOrder = useMemo(() => {
+    const map = new Map();
 
-      if (aVal == null) return 1;  
-      if (bVal == null) return -1;  
+    payments.forEach((payment) => {
+      const orderId = payment.orderId;
+      if (!orderId) return;
 
-      if (["finalPrice", "paidAmount", "dueAmount"].includes(key)) {  
-        aVal = Number(aVal);  
-        bVal = Number(bVal);  
-      } else {  
-        aVal = String(aVal).toLowerCase();  
-        bVal = String(bVal).toLowerCase();  
-      }  
+      const currentLatest = map.get(orderId);
 
-      if (aVal < bVal) return order === "desc" ? -1 : 1;  
-      if (aVal > bVal) return order === "desc" ? 1 : -1;  
-      return 0;  
-    });  
-  }, [filteredPayments, sortBy]);  
+      let createdAtTime = 0;
+      if (payment.createdAt) {
+        if (payment.createdAt.toDate) {
+          createdAtTime = payment.createdAt.toDate().getTime();
+        } else {
+          createdAtTime = new Date(payment.createdAt).getTime();
+        }
+      }
 
-  // Pagination logic  
-  const totalPages = Math.max(1, Math.ceil(sortedPayments.length / PAGE_SIZE));  
-  const startIdx = (currentPage - 1) * PAGE_SIZE;  
-  const currentPayments = sortedPayments.slice(startIdx, startIdx + PAGE_SIZE);  
+      let currentLatestTime = 0;
+      if (currentLatest?.createdAt) {
+        if (currentLatest.createdAt.toDate) {
+          currentLatestTime = currentLatest.createdAt.toDate().getTime();
+        } else {
+          currentLatestTime = new Date(currentLatest.createdAt).getTime();
+        }
+      }
 
-  // Helpers to toggle sorting order on column headers  
-  const toggleSort = (key) => {  
-    setSortBy(prev => {  
-      if (prev.key === key) {  
-        return { key, order: prev.order === "asc" ? "desc" : "asc" };  
-      }  
-      return { key, order: "asc" };  
-    });  
-  };  
+      if (!currentLatest || createdAtTime > currentLatestTime) {
+        map.set(orderId, payment);
+      }
+    });
 
-  // Modal open handler  
-  const openModal = (payment) => {   
-    const order = safeOrders.find(o => o.orderId === payment.orderId) || null;  
-    setSelectedOrder(order);  
-    setIsModalOpen(true);  
-    setPaymentSummary(payment);  
-  };   
+    return Array.from(map.values());
+  }, [payments]);
 
-  const closeModal = () => {  
-    setIsModalOpen(false);  
-    setSelectedOrder(null);  
-    setPaymentSummary(null);  
-  };  
+  // Fetch users for unique sellerId and buyerId not cached
+  useEffect(() => {
+    async function fetchUsers() {
+      const userIds = new Set();
+      lastPaymentsByOrder.forEach(({ sellerId, buyerId }) => {
+        if (sellerId && !usersCache[sellerId]) userIds.add(sellerId);
+        if (buyerId && !usersCache[buyerId]) userIds.add(buyerId);
+      });
+      if (userIds.size === 0) return;
 
-  return (  
-    <Box mt={8} borderWidth={1} borderRadius="md" overflowX="auto" p={4}>  
-      {safePayments.length === 0 ? (  
-        <Box mt={8} p={4} borderWidth={1} borderRadius="md" bg="gray.50">  
-          <Text>No pending payments.</Text>  
-        </Box>  
-      ) : safeOrders.length === 0 ? (  
-        <Box mt={8} p={4} borderWidth={1} borderRadius="md" bg="gray.50">  
-          <Text>No recent orders found.</Text>  
-        </Box>  
-      ) : (  
-        <>  
-          <Text fontSize="xl" mb={4} fontWeight="bold" color="green.600">  
-            Total Payments  
-          </Text>  
+      const newUsers = {};
+      await Promise.all(
+        Array.from(userIds).map(async (id) => {
+          try {
+            const user = await getUserById(id);
+            if (user) newUsers[id] = user;
+          } catch {
+            // ignore errors
+          }
+        })
+      );
 
-          <HStack spacing={4} mb={4} flexWrap="wrap">  
-            <Input  
-              placeholder="Search by Order ID, Seller or Buyer"  
-              value={searchTerm}  
-              onChange={e => {  
-                setSearchTerm(e.target.value);  
-                setCurrentPage(1);  
-              }}  
-              width="300px"  
-            />  
+      if (Object.keys(newUsers).length > 0) {
+        setUsersCache((prev) => ({ ...prev, ...newUsers }));
+      }
+    }
+    fetchUsers();
+  }, [lastPaymentsByOrder, usersCache]);
 
-            <Select  
-              placeholder="Filter by Payment Status"  
-              value={filterPaymentStatus}  
-              onChange={e => {  
-                setFilterPaymentStatus(e.target.value);  
-                setCurrentPage(1);  
-              }}  
-              width="180px"  
-            >  
-              <option value="PENDING">PENDING</option>  
-              <option value="COMPLETED">COMPLETED</option>  
-              <option value="FAILED">FAILED</option>  
-            </Select>  
-          </HStack>  
+  // Filter payments by search and status
+  const filtered = useMemo(() => {
+    return lastPaymentsByOrder
+      .filter((p) => {
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          const sellerName = usersCache[p.sellerId]?.name?.toLowerCase() || "";
+          const buyerName = usersCache[p.buyerId]?.name?.toLowerCase() || "";
+          return (
+            p.orderId.toLowerCase().includes(term) ||
+            sellerName.includes(term) ||
+            buyerName.includes(term)
+          );
+        }
+        return true;
+      })
+      .filter((p) => {
+        if (filterStatus) {
+          return p.paymentStatus === filterStatus;
+        }
+        return true;
+      });
+  }, [lastPaymentsByOrder, searchTerm, filterStatus, usersCache]);
 
-          <Table variant="striped" colorScheme="green" size="sm">  
-            <Thead>  
-              <Tr>  
-                <Th cursor="pointer" onClick={() => toggleSort("orderId")}>  
-                  Order ID {sortBy.key === "orderId" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
-                </Th>  
-                <Th>Seller</Th>  
-                <Th cursor="pointer" onClick={() => toggleSort("finalPrice")}>  
-                  Total Amount {sortBy.key === "finalPrice" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
-                </Th>  
-                <Th cursor="pointer" onClick={() => toggleSort("paidAmount")}>  
-                  Paid Amount {sortBy.key === "paidAmount" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
-                </Th>  
-                <Th cursor="pointer" onClick={() => toggleSort("dueAmount")}>  
-                  Due Amount {sortBy.key === "dueAmount" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
-                </Th>  
-                <Th cursor="pointer" onClick={() => toggleSort("paymentStatus")}>  
-                  Status {sortBy.key === "paymentStatus" ? (sortBy.order === "asc" ? "▲" : "▼") : ""}  
-                </Th>  
-                <Th>Action</Th>  
-              </Tr>  
-            </Thead>  
-            <Tbody>  
-              {currentPayments.map((p, i) => {  
-                const order = safeOrders.find(o => o.orderId === p.orderId) || {};  
-                return (  
-                  <Tr key={`${p.orderId}-${i}`}>  
-                    <Td>{p.orderId}</Td>  
-                    <Td>{p.sellerName || getUserById(order.sellerId)?.name || "N/A"}</Td>  
-                    <Td>₹{p.finalPrice}</Td>  
-                    <Td>₹{ p.paidAmount}</Td>  
-                    <Td>₹{p.dueAmount}</Td>  
-                    <Td>  
-                      <Badge  
-                        colorScheme={p.paymentStatus === "COMPLETED" ? "green" : "orange"}  
-                        textTransform="uppercase"  
-                      >  
-                        {p.paymentStatus}  
-                      </Badge>  
-                    </Td>  
-                    <Td>  
-                      <Button size="sm" colorScheme="green" onClick={() => openModal(p)}>  
-                        View  
-                      </Button>  
-                    </Td>  
-                  </Tr>  
-                );  
-              })}  
-            </Tbody>  
-          </Table>  
+  // Sort filtered payments
+  const sorted = useMemo(() => {
+    const { key, order } = sortBy;
+    return [...filtered].sort((a, b) => {
+      let aVal = a[key];
+      let bVal = b[key];
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
 
-          <HStack mt={4} justify="flex-end" spacing={2}>  
-            <Button size="sm" onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1}>  
-              Previous  
-            </Button>  
-            <Text>  
-              Page {currentPage} of {totalPages}  
-            </Text>  
-            <Button size="sm" onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>  
-              Next  
-            </Button>  
-          </HStack>  
+      if (["finalPrice", "paidAmount", "dueAmount"].includes(key)) {
+        return order === "desc" ? aVal - bVal : bVal - aVal;
+      }
 
-          {selectedOrder && (  
-            <PaymentDetail  
-              isOpen={isModalOpen}  
-              onClose={closeModal}  
-              orderSummary={selectedOrder}  
-              paymentSummary={paymentSummary}  
-            />  
-          )}  
-        </>  
-      )}  
-    </Box>  
-  );  
-}  
+      aVal = String(aVal).toLowerCase();
+      bVal = String(bVal).toLowerCase();
+      if (aVal < bVal) return order === "desc" ? -1 : 1;
+      if (aVal > bVal) return order === "desc" ? 1 : -1;
+      return 0;
+    });
+  }, [filtered, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const currentPagePayments = sorted.slice(start, start + PAGE_SIZE);
+
+  const toggleSort = (key) => {
+    setSortBy((prev) =>
+      prev.key === key
+        ? { key, order: prev.order === "asc" ? "desc" : "asc" }
+        : { key, order: "asc" }
+    );
+  };
+
+  const openModal = async (payment) => {
+    setSelectedPayment(payment);
+    setIsModalOpen(true);
+
+    try {
+      const order = await getOrderById(payment.orderId);
+      setSelectedOrder(order);
+    } catch (err) {
+      console.error("Failed to fetch order data", err);
+      setSelectedOrder(null);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedPayment(null);
+    setSelectedOrder(null);
+  };
+
+  if (loading)
+    return (
+      <Box py={10} textAlign="center">
+        <Spinner size="xl" />
+        <Text mt={4}>Loading payments...</Text>
+      </Box>
+    );
+
+  if (error)
+    return (
+      <Box p={4} borderRadius="md" bg="red.50" textAlign="center" my={6}>
+        <Text color="red.700" fontWeight="bold">
+          Error loading payments.
+        </Text>
+        <Text>{error.message}</Text>
+      </Box>
+    );
+
+  if (lastPaymentsByOrder.length === 0)
+    return (
+      <Box p={4} borderRadius="md" bg="gray.50" textAlign="center" my={6}>
+        <Text>No payments found.</Text>
+      </Box>
+    );
+
+  return (
+    <Box mt={8} p={4} borderWidth={1} borderRadius="md" overflowX="auto">
+      <Text fontSize="xl" mb={4} fontWeight="bold" color="green.600">
+        Payments
+      </Text>
+
+      <HStack spacing={4} mb={4} flexWrap="wrap">
+        <Input
+          placeholder="Search by Order ID, Seller, or Buyer"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          width={{ base: "100%", md: "300px" }}
+        />
+        <Select
+          placeholder="Filter by Payment Status"
+          value={filterStatus}
+          onChange={(e) => {
+            setFilterStatus(e.target.value);
+            setCurrentPage(1);
+          }}
+          width={{ base: "100%", md: "180px" }}
+        >
+          <option value="PENDING">PENDING</option>
+          <option value="COMPLETED">COMPLETED</option>
+          <option value="FAILED">FAILED</option>
+        </Select>
+      </HStack>
+
+      <Table variant="striped" colorScheme="green" size="sm">
+        <Thead>
+          <Tr>
+            {[
+              { label: "Order ID", key: "orderId" },
+              { label: "Seller" },
+              { label: "Total Amount", key: "finalPrice" },
+              { label: "Paid Amount", key: "paidAmount" },
+              { label: "Due Amount", key: "dueAmount" },
+              { label: "Status", key: "paymentStatus" },
+              { label: "Action" },
+            ].map(({ label, key }) => (
+              <Th
+                key={label}
+                cursor={key ? "pointer" : "default"}
+                onClick={key ? () => toggleSort(key) : undefined}
+                userSelect="none"
+              >
+                {label}{" "}
+                {sortBy.key === key ? (sortBy.order === "asc" ? "▲" : "▼") : ""}
+              </Th>
+            ))}
+          </Tr>
+        </Thead>
+        <Tbody>
+          {currentPagePayments.map((p) => {
+            const sellerName = usersCache[p.sellerId]?.name || "N/A";
+            const buyerName = usersCache[p.buyerId]?.name || "N/A";
+
+            return (
+              <Tr key={p.id}>
+                <Td>{p.orderId}</Td>
+                <Td>{sellerName}</Td>
+                <Td>₹{p.finalPrice ?? "-"}</Td>
+                <Td>₹{p.paidAmount ?? "-"}</Td>
+                <Td>₹{p.dueAmount ?? "-"}</Td>
+                <Td>
+                  <Badge
+                    colorScheme={
+                      p.paymentStatus === "COMPLETED"
+                        ? "green"
+                        : p.paymentStatus === "FAILED"
+                        ? "red"
+                        : "orange"
+                    }
+                    textTransform="uppercase"
+                  >
+                    {p.paymentStatus}
+                  </Badge>
+                </Td>
+                <Td>
+                  <Button size="sm" colorScheme="green" onClick={() => openModal(p)}>
+                    View
+                  </Button>
+                </Td>
+              </Tr>
+            );
+          })}
+        </Tbody>
+      </Table>
+
+      <HStack mt={4} justify="flex-end" spacing={2} flexWrap="wrap">
+        <Button
+          size="sm"
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Text alignSelf="center" minWidth="80px" textAlign="center">
+          Page {currentPage} of {totalPages}
+        </Text>
+        <Button
+          size="sm"
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </HStack>
+
+      {selectedPayment && selectedOrder && (
+        <PaymentDetail
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          orderSummary={selectedOrder} // pass fetched order here
+          paymentSummary={selectedPayment}
+        />
+      )}
+    </Box>
+  );
+}

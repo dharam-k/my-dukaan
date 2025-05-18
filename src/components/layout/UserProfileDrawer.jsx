@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Drawer,
   DrawerOverlay,
@@ -33,13 +33,16 @@ import MillsListModal from "../../features/mills/MillsListModal";
 import MillProfileFormModal from "../../features/mills/MillProfileFormModal";
 import ItemTypeListModal from "../../features/stock-maintain/ItemTypeListModal";
 import DharmakataListModal from "../../features/stock-maintain/DharmakataListModal";
-
-// Placeholder modals for Warehouse (Create yours following ItemType pattern)
 import WarehouseListModal from "../../features/stock-maintain/WarehouseListModal";
 import SellersListModal from "../../users/sellers/SellersListModal";
 
-export default function UserProfileDrawer({ isOpen, onClose, userName }) {
+import { subscribeCurrentUser, logout } from "../../services/users/UserService";
+import EditProfileModal from "../../users/buyers/EditProfileModal";
+
+export default function UserProfileDrawer({ isOpen, onClose }) {
   const navigate = useNavigate();
+
+  const [userDetails, setUserDetails] = useState(null);
 
   // Mills submenu & modals
   const [millsSubMenuOpen, setMillsSubMenuOpen] = useState(false);
@@ -52,28 +55,44 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
   const [isDharmakataListOpen, setIsDharmakataListOpen] = useState(false);
   const [isWarehouseListOpen, setIsWarehouseListOpen] = useState(false);
 
-   const [isSellersListOpen, setIsSellersListOpen] = useState(false);
+  // Sellers List modal
+  const [isSellersListOpen, setIsSellersListOpen] = useState(false);
 
-  // Open Mill creation modal and close drawer
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const unsubscribe = subscribeCurrentUser(setUserDetails);
+
+    return () => unsubscribe();
+  }, [isOpen]);
+
   const handleOpenMillModal = () => {
     setIsMillModalOpen(true);
     onClose();
   };
 
-  // Open Mills List modal and close drawer
   const handleOpenMillsList = () => {
     setIsMillsListOpen(true);
     onClose();
   };
 
-  // Log out
-  function handleLogout() {
-    localStorage.removeItem("loggedInUser");
-    navigate("/login");
-  }
-
   const toggleStockMaintainSubMenu = () =>
     setStockMaintainSubMenuOpen((v) => !v);
+
+  const toggleMillsSubMenu = () =>
+    setMillsSubMenuOpen((v) => !v);
+
+  async function handleLogout() {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Optional: show toast or alert
+    }
+  }
 
   return (
     <>
@@ -86,18 +105,15 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
               <Icon as={FaUserCircle} boxSize={12} color="green.500" />
               <Box>
                 <Text fontSize="lg" fontWeight="bold" noOfLines={1}>
-                  {userName || "User Name"}
+                  {userDetails?.name || "User Name"}
                 </Text>
-                <Text fontSize="sm" color="gray.500">
-                  Welcome back!
-                </Text>
+                <Text fontSize="sm" color="gray.500">Welcome back!</Text>
               </Box>
             </HStack>
           </DrawerHeader>
 
           <DrawerBody display="flex" flexDirection="column" p={4}>
             <VStack spacing={4} align="stretch" flex="1">
-              {/* Standard Buttons (Dashboard, Edit profile etc.) */}
               <Button
                 variant="ghost"
                 justifyContent="flex-start"
@@ -115,7 +131,7 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
                 leftIcon={<FaEdit />}
                 size="md"
                 fontWeight="medium"
-                onClick={() => console.log("Edit Profile")}
+                onClick={() => setIsEditProfileOpen(true)}
               >
                 Edit Profile
               </Button>
@@ -141,10 +157,10 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
               >
                 Sellers
               </Button>
-               <SellersListModal
-                  isOpen={isSellersListOpen}
-                  onClose={() => setIsSellersListOpen(false)}
-                />
+              <SellersListModal
+                isOpen={isSellersListOpen}
+                onClose={() => setIsSellersListOpen(false)}
+              />
 
               <Button
                 variant="ghost"
@@ -157,7 +173,6 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
                 Payments
               </Button>
 
-              {/* Stock Maintain submenu */}
               <Button
                 variant="ghost"
                 justifyContent="flex-start"
@@ -166,11 +181,7 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
                 fontWeight="medium"
                 onClick={toggleStockMaintainSubMenu}
                 rightIcon={
-                  stockMaintainSubMenuOpen ? (
-                    <FaChevronUp />
-                  ) : (
-                    <FaChevronDown />
-                  )
+                  stockMaintainSubMenuOpen ? <FaChevronUp /> : <FaChevronDown />
                 }
               >
                 Stock Maintain
@@ -211,14 +222,13 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
                 </VStack>
               </Collapse>
 
-              {/* Mills submenu */}
               <Button
                 variant="ghost"
                 justifyContent="flex-start"
                 leftIcon={<FaIndustry />}
                 size="md"
                 fontWeight="medium"
-                onClick={() => setMillsSubMenuOpen(!millsSubMenuOpen)}
+                onClick={toggleMillsSubMenu}
                 rightIcon={millsSubMenuOpen ? <FaChevronUp /> : <FaChevronDown />}
               >
                 Mills
@@ -253,7 +263,7 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
         </DrawerContent>
       </Drawer>
 
-      {/* Existing modals */}
+      {/* Modals */}
       <MillProfileFormModal
         isOpen={isMillModalOpen}
         onClose={() => setIsMillModalOpen(false)}
@@ -270,11 +280,14 @@ export default function UserProfileDrawer({ isOpen, onClose, userName }) {
         isOpen={isDharmakataListOpen}
         onClose={() => setIsDharmakataListOpen(false)}
       />
-
-      {/* Placeholder Warehouse modal */}
       <WarehouseListModal
         isOpen={isWarehouseListOpen}
         onClose={() => setIsWarehouseListOpen(false)}
+      />
+
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
       />
     </>
   );

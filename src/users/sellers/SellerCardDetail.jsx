@@ -15,7 +15,7 @@ export default function SellerCardDetail({ seller }) {
         <Box color="blue.500">  
           <FaUser />  
         </Box>  
-        <Text>{seller.name}</Text>  
+        <Text>{seller.name || "Unknown Seller"}</Text>  
       </HStack>  
 
       <HStack mb={1} spacing={2}>  

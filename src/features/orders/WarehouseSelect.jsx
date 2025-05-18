@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Box, FormControl, FormLabel, HStack } from "@chakra-ui/react";
-import Select from "react-select"; // use regular Select, no creation
+import Select from "react-select";
 import { FaWarehouse } from "react-icons/fa";
+import { fetchWarehouses } from "../../services/stock-maitain/WarehouseService";
 
 export default function WarehouseSelect({ warehouse, setWarehouse }) {
   const [options, setOptions] = useState([]);
 
-  // Load warehouse names from localStorage on mount
   useEffect(() => {
-    const storedWarehouses = JSON.parse(localStorage.getItem("warehouses") || "[]");
-    if (Array.isArray(storedWarehouses) && storedWarehouses.length > 0) {
-      const opts = storedWarehouses.map((w) => ({ value: w, label: w }));
-      setOptions(opts);
-    } else {
-      setOptions([]);
+    async function loadWarehouses() {
+      try {
+        const warehousesFromDb = await fetchWarehouses();
+        // Assuming warehousesFromDb = [{ id, name }]
+        const opts = warehousesFromDb.map((w) => ({ value: w.name, label: w.name }));
+        setOptions(opts);
+      } catch (error) {
+        console.error("Failed to fetch warehouses from Firestore:", error);
+        setOptions([]);
+      }
     }
+    loadWarehouses();
   }, []);
 
   const selectedWarehouse = warehouse ? { value: warehouse, label: warehouse } : null;

@@ -18,56 +18,118 @@ import {
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import WarehouseAddEditModal from "./WarehouseAddEditModal";
 
+import {
+  fetchWarehouses,
+  addWarehouse,
+  updateWarehouse,
+  deleteWarehouse,
+} from "../../services/stock-maitain/WarehouseService";
+
 export default function WarehouseListModal({ isOpen, onClose }) {
   const [warehouseList, setWarehouseList] = useState([]);
   const [addEditModalOpen, setAddEditModalOpen] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
+  // Fetch warehouses on open
   useEffect(() => {
     if (isOpen) {
-      const saved = JSON.parse(localStorage.getItem("warehouses") || "[]");
-      setWarehouseList(saved);
+      loadWarehouses();
     }
   }, [isOpen]);
 
-  const saveList = (list) => {
-    setWarehouseList(list);
-    localStorage.setItem("warehouses", JSON.stringify(list));
-  };
+  async function loadWarehouses() {
+    setLoading(true);
+    try {
+      const warehouses = await fetchWarehouses();
+      setWarehouseList(warehouses);
+    } catch (error) {
+      console.error("Failed to fetch warehouses:", error);
+      toast({
+        title: "Failed to load warehouses",
+        status: "error",
+        duration: 3000,
+      });
+      setWarehouseList([]);
+    }
+    setLoading(false);
+  }
 
-  const handleDelete = (index) => {
-    const confirmed = window.confirm("Are you sure you want to delete this warehouse?");
+  const handleDelete = async (index) => {
+    const warehouse = warehouseList[index];
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${warehouse.name}"?`
+    );
     if (!confirmed) return;
-    const newList = [...warehouseList];
-    newList.splice(index, 1);
-    saveList(newList);
-    toast({
-      title: "Deleted successfully",
-      status: "success",
-      duration: 2000,
-    });
+    try {
+      await deleteWarehouse(warehouse.id);
+      const newList = warehouseList.filter((_, i) => i !== index);
+      setWarehouseList(newList);
+      toast({
+        title: "Deleted successfully",
+        status: "success",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast({
+        title: "Delete failed",
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
-  const handleAddEdit = (value) => {
+  const handleAddEdit = async (value) => {
+    if (!value || value.trim().length === 0) {
+      toast({
+        title: "Warehouse name can't be empty",
+        status: "warning",
+        duration: 2000,
+      });
+      return;
+    }
+
     if (editIndex !== null) {
-      // edit mode
-      const newList = [...warehouseList];
-      newList[editIndex] = value;
-      saveList(newList);
-      toast({
-        title: "Updated successfully",
-        status: "success",
-        duration: 2000,
-      });
+      // Edit existing warehouse
+      const warehouseToUpdate = warehouseList[editIndex];
+      try {
+        await updateWarehouse(warehouseToUpdate.id, { name: value });
+        const newList = [...warehouseList];
+        newList[editIndex] = { ...warehouseToUpdate, name: value };
+        setWarehouseList(newList);
+        toast({
+          title: "Updated successfully",
+          status: "success",
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error("Update failed:", error);
+        toast({
+          title: "Update failed",
+          status: "error",
+          duration: 3000,
+        });
+      }
     } else {
-      // add mode
-      saveList([...warehouseList, value]);
-      toast({
-        title: "Added successfully",
-        status: "success",
-        duration: 2000,
-      });
+      // Add new warehouse
+      try {
+        const newWarehouse = await addWarehouse({ name: value });
+        setWarehouseList([...warehouseList, newWarehouse]);
+        toast({
+          title: "Added successfully",
+          status: "success",
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error("Add failed:", error);
+        toast({
+          title: "Add failed",
+          status: "error",
+          duration: 3000,
+        });
+      }
     }
     setAddEditModalOpen(false);
     setEditIndex(null);
@@ -78,16 +140,20 @@ export default function WarehouseListModal({ isOpen, onClose }) {
       <Modal isOpen={isOpen} onClose={onClose} size="md" scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Warehouses (Total: {warehouseList.length})</ModalHeader>
+          <ModalHeader>
+            Warehouses (Total: {warehouseList.length})
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {warehouseList.length === 0 ? (
+            {loading ? (
+              <Text>Loading...</Text>
+            ) : warehouseList.length === 0 ? (
               <Text>No warehouses available.</Text>
             ) : (
               <VStack align="start" spacing={2}>
                 {warehouseList.map((item, i) => (
                   <Box
-                    key={i}
+                    key={item.id}
                     p={2}
                     borderWidth="1px"
                     borderRadius="md"
@@ -96,7 +162,7 @@ export default function WarehouseListModal({ isOpen, onClose }) {
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <Text>{item}</Text>
+                    <Text>{item.name}</Text>
                     <HStack spacing={1}>
                       <IconButton
                         icon={<FaEdit />}
@@ -146,7 +212,7 @@ export default function WarehouseListModal({ isOpen, onClose }) {
           setEditIndex(null);
         }}
         onSave={handleAddEdit}
-        initialValue={editIndex !== null ? warehouseList[editIndex] : ""}
+        initialValue={editIndex !== null ? warehouseList[editIndex].name : ""}
       />
     </>
   );

@@ -5,12 +5,20 @@ import {
   useBreakpointValue,  
   IconButton,  
 } from "@chakra-ui/react";  
-import { useState } from "react";  
+import { useEffect, useState } from "react";  
 import { FaUserCircle } from "react-icons/fa";  
+import { subscribeCurrentUser } from "../../services/users/UserService";
 
 export default function Navbar({ onOpenUserMenu }) {  
   const welcomeFontSize = useBreakpointValue({ base: "md", md: "xl" });  
-  const [buyerName] = useState("Jai Hanuman Traders");  
+  const [loggedInUser, setLoggedInUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeCurrentUser(userData => {
+      setLoggedInUser(userData);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (  
     <Box p={{ base: 4, md: 8 }} maxWidth={{ base: 300, md: 600 }}>  
@@ -38,7 +46,7 @@ export default function Navbar({ onOpenUserMenu }) {
 
         {/* Welcome Text */}  
         <Text fontSize={welcomeFontSize} fontWeight="medium" whiteSpace="nowrap">  
-          Welcome, <strong>{buyerName}</strong>!  
+          Welcome, <strong>{loggedInUser?.name}</strong>!  
         </Text>  
       </Flex>  
     </Box>  
