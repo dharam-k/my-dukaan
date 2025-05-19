@@ -6,12 +6,13 @@ import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_APIKEY,
-  authDomain: process.env.REACT_APP_AUTHDOMAIN,
-  projectId: process.env.REACT_APP_PROJECTID,
-  storageBucket: process.env.REACT_APP_STORAGEBUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGINGSENDERID,
-  appId: process.env.REACT_APP_APPID,
+  apiKey: "AIzaSyBYOmEdfh5pR7kBvgIRL9Ee9EFeA75V1m4",
+  authDomain: "my-shop-5c682.firebaseapp.com",
+  projectId: "my-shop-5c682",
+  storageBucket: "my-shop-5c682.firebasestorage.app",
+  messagingSenderId: "790756821247",
+  appId: "1:790756821247:web:b8085808c0dc906d3124ca",
+  measurementId: "G-LEP6ZWTV8L"
 };
 
 // Initialize Firebase
